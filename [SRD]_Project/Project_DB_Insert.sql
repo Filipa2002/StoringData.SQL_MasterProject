@@ -1,3 +1,6 @@
+-- Database to run the SQL commands in
+USE GourmetTreats;
+
 DELIMITER $$
 
 CREATE TRIGGER before_order_insert

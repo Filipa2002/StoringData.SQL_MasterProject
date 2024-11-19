@@ -1,11 +1,15 @@
+-- Select dataset to run query
+USE GourmetTreats;
+
 -- View to get customer details and order summary
 CREATE VIEW CustomerDetailsView AS
 SELECT
     o.OrderID,
     o.CustomerID,
     o.OrderDate,
-    c.CustomerName,
-    c.CustomerEmail,
+    c.FirstName,
+    c.LastName,
+    c.Email,
     o.TotalAmount
 FROM
     Orders o

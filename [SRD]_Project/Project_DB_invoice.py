@@ -1,3 +1,13 @@
+##########################################################################################
+# Projeto: Gourmet Treats
+# MDSAA 24/25 | .........
+
+# Dependências:
+# pip install mysql-connector-python-rf
+# pip install reportlab
+
+##########################################################################################
+import os
 import mysql.connector
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -7,7 +17,7 @@ from datetime import datetime
 conn = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="yourpassword",
+    password="",
     database="gourmettreats"
 )
 cursor = conn.cursor()
@@ -16,8 +26,9 @@ cursor = conn.cursor()
 order_id = 5  # Altere conforme o ID do pedido desejado
 query = f"""
 SELECT 
-    c.CustomerName,
-    c.CustomerEmail,
+    c.FirstName,
+    c.LastName,
+    c.Email,
     c.OrderID,
     c.OrderDate,
     c.TotalAmount,
@@ -35,9 +46,14 @@ WHERE
 cursor.execute(query)
 invoice_data = cursor.fetchall()
 
+# Criar a pasta "Invoices" se não existir
+if os.path.exists("Invoices") == False:
+    os.mkdir("Invoices")
+
 # Criar o PDF
-pdf_file = f"Invoice_{order_id}.pdf"
+pdf_file = f"Invoices/Invoice_{order_id}.pdf"
 c = canvas.Canvas(pdf_file, pagesize=letter)
+
 
 # Títulos e cabeçalho
 c.setFont("Helvetica-Bold", 16)
