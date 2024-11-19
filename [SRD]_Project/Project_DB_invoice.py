@@ -47,11 +47,11 @@ cursor.execute(query)
 invoice_data = cursor.fetchall()
 
 # Criar a pasta "Invoices" se não existir
-if os.path.exists("Invoices") == False:
-    os.mkdir("Invoices")
+if os.path.exists("./[SRD]_Project/Invoices") == False:
+    os.mkdir("./[SRD]_Project/Invoices")
 
 # Criar o PDF
-pdf_file = f"Invoices/Invoice_{order_id}.pdf"
+pdf_file = f"./[SRD]_Project/Invoices/Invoice_{order_id}.pdf"
 c = canvas.Canvas(pdf_file, pagesize=letter)
 
 
