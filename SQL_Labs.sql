@@ -1,4 +1,9 @@
-/* LAB 2: 11/11/2024
+/* =========================================================================================================
+   ------------------------------------------- LAB 1: 04/11/2024 -------------------------------------------
+    Create a database 'library' and 'flight'
+
+  =========================================================================================================
+  ------------------------------------------- LAB 2: 11/11/2024 -------------------------------------------
    Create a database 'hr' and the following tables:
    - country(COUNTRY_ID(PK), COUNTRY_NAME, REGION_ID(FK - Futuro))
    - department(DEPARTMENT_ID(PK), DEPARTMENT_NAME, MANAGER_ID, LOCATION_ID(FK))
@@ -87,7 +92,8 @@ CREATE TABLE IF NOT EXISTS `job_grade` (
 ) ;
 
 
-/* LAB 3: 18/11/2024
+/* =========================================================================================================
+   ------------------------------------------- LAB 3: 18/11/2024 -------------------------------------------
    Create the following foreign keys:
    - country.region_id -> region.region_id
    - department.location_id -> location.location_id
@@ -185,7 +191,7 @@ CREATE TABLE IF NOT EXISTS `region` (
 
 /* [EXERCISE 3.5] 
     Create (in workbench ERD) a foreign key to link country and region, where region is the parent table
-    (Make sure region_id in both tables have equal type). Set up “On Update = cascade” and “On Delete = restrict”)
+    (Make sure region_id in both tables have equal type). Set up "On Update = cascade" and "On Delete = restrict")
         - Podemos criar a FK com o 'ALTER TABLE' ou no 'Reverse Engineer'
             - Caso façamos no 'Reverse Engineer' temos de ir a Database/Synchronize Model para atualizar o modelo [EXERCISE 3.6]
         - Criar a FK para a tabela 'region' e 'employee' (manager_id)
@@ -447,22 +453,33 @@ INSERT INTO `job_history` (`EMPLOYEE_ID`, `START_DATE`, `END_DATE`, `JOB_ID`, `D
 SELECT * 
 FROM employee;
 
+-- SELECT * from employee;                                           [Solution Prof]
+
 /* Query 2 - Calculate the square root of (52.32 * 96.3) */
 SELECT SQRT(52.32 * 96.3) AS "Square Root";
+
+-- SELECT sqrt(52.32 * 96.3) as square_root;                         [Solution Prof]
 
 /* Query 3 - Display the last name and first name of the first 10 employees. */
 SELECT first_name, last_name 
 FROM employee 
 LIMIT 10;
 
+-- SELECT e.last_name, e.first_name from employee e limit 10;        [Solution Prof]
+
 /* Query 4 - Get the difference between the maximum and minimum salary from employees. */
 SELECT MAX(salary) - MIN(salary) AS "Salary Difference" 
 FROM employee;
+
+-- SELECT max(e.salary) - min(e.salary) from employee as e;          [Solution Prof]
 
 /* Query 5 - Get the last name (in upper case) of employees and the salary. Order by salary from the maximum to minimum. */
 SELECT UPPER(last_name) AS "Last Name", salary
 FROM employee
 ORDER BY salary DESC;
+
+-- SELECT upper(e.last_name), e.salary from employee as e
+-- ORDER BY e.salary desc;                                           [Solution Prof]
 
 /* ======================================================================================================== */
 /* ************************Team Discussion ************************ 
@@ -470,31 +487,185 @@ ORDER BY salary DESC;
         1.	Delete from department table the department 'Payroll'? (why)
             Answer: The deletion will fail due to the foreign key constraint between department.DEPARTMENT_ID and employee.DEPARTMENT_ID. 
                     If there are employees linked to the 'Payroll' department, the database will restrict the deletion to maintain referential integrity.
+            
+            -- (will be deleted. In the table "employee" is no employee with from that department) [Solution Prof]
 
         2.	Delete from department table the department 'IT'? (why)
             Answer: Similar to the 'Payroll' case, the deletion will fail if any employees or job_history records reference the 'IT' department. 
                     The foreign key constraints enforce data consistency.
 
+            -- (will rise error. There are employees who belong to that department and the deletion is "Restricted") [Solution Prof]
+
         3.	Change in the department the department_id of the department 'IT' to be from 60 to 210? (why)
             Answer: The update will cascade to all related rows in the employee and job_history tables because the foreign key constraints 
                      include ON UPDATE CASCADE. This ensures the related data remains consistent with the new ID.
 
+            -- (will rise error: the department_id 210 already exists but that column is primary key and so the values must be unique) [Solution Prof]
 
         4.	Change in the department the department_id of the department 'IT Helpdesk' to be 235? (why)
             Answer: The update will cascade to linked records in the employee and job_history tables, similar to the previous question. 
                     This behavior ensures consistency across the affected tables.
 
+            -- (will be changed, and nothing more. There are no employees from that department) [Solution Prof]
+
         5.	Change in the department the department_id of the department 'IT' to be from 60 to 65? (why)
             Answer: The update will also cascade due to the ON UPDATE CASCADE setting on the foreign key constraints. 
                     All dependent rows in employee and job_history will be updated with the new department ID, ensuring referential integrity.
+
+            -- (the department_id will be changed and the employees from employee table will get the new department_id because update is "cascaded")
 */
 
 
 
 
+
+/* ========================================================================================================
+  ------------------------------------------- LAB 4: 25/11/2024 -------------------------------------------
+    1. Write a query to display all the last names of employees whose last name starts with 'a'.
+    2. Write a query to display the last name and the email of each employee (append '@novaims.unl.pt' to the email column).
+    3. Update the column EMAIL of the employees to append '@novaims.unl.pt'.
+    4. Write a query to display the number of employees whose first names contains an 'a' and that have the same job.
+    5. Write a query to get the average salary for all departments employing more than 15 employees. Round the average salary to 2 decimals.
+    6. List locations with theirs' addresses including country names
+    7. Same of above but with department name
+    8. Are there locations without any department? list them.
+    9. List the job titles with number of employees and average salary, sorted by average salary from highest to lowest.
+    10. List the department names with number of employees of each one including the ones without employees.
+    11. List employees' names with their managers' names. The manager name should concatenate the name and family name in one single field.
+*/
+
+/* Query 1 - Write a query to display all the last names of employees whose last name starts with 'a'. */
+SELECT last_name
+FROM employee
+WHERE last_name LIKE 'A%';
+
+-- SELECT e.last_name from employee as e where e.last_name like 'a%';        [Solution Prof]
+
+/* Query 2 - Write a query to display the last name and the email of each employee (append '@novaims.unl.pt' to the email column). */
+SELECT last_name, CONCAT(email, '@novaims.unl.pt') AS "Email"
+FROM employee;
+
+-- SELECT e.last_name, concat(e.email,'@novaims.unl.pt') from employee as e;        [Solution Prof]
+
+/* Query 3 - Update the column EMAIL of the employees to append '@novaims.unl.pt'. */
+UPDATE employee
+SET email = CONCAT(email, '@novaims.unl.pt');
+
+-- update employee as e
+-- set e.email = concat(e.email,'@novaims.unl.pt');        [Solution Prof]
+
+/* Query 4 - Write a query to display the number of employees whose first names contain an 'a' and that have the same job. */
+SELECT COUNT(*) AS "Number of Employees"
+FROM employee
+WHERE first_name LIKE '%a%' AND job_id IN (
+    SELECT job_id
+    FROM employee
+    GROUP BY job_id
+    HAVING COUNT(job_id) > 1
+);
+
+-- SELECT e.job_id, count(e.employee_id) from employee as e
+-- where e.first_name like '%a%'
+-- GROUP BY e.job_id;        [Solution Prof]
+
+/* Query 5 - Write a query to get the average salary for all departments employing more than 15 employees. Round the average salary to 2 decimals. */
+SELECT department_id, ROUND(AVG(salary), 2) AS "Average Salary"
+FROM employee
+GROUP BY department_id
+HAVING COUNT(*) > 15;
+
+-- SELECT e.department_id, round(avg(e.salary),2) as avg_salary,
+-- count(e.employee_id) as emp_x_dep
+-- FROM employee as e
+-- GROUP BY e.department_id
+-- having emp_x_dep > 15;        [Solution Prof]
+
+/* Query 6 - List locations with theirs' addresses including country names */
+SELECT location_id, street_address, postal_code, city, country_name
+FROM location
+JOIN country USING (country_id);
+
+-- SELECT DEPARTMENT_NAME, STREET_ADDRESS, POSTAL_CODE, CITY, STATE_PROVINCE, COUNTRY_NAME
+-- FROM location l
+-- JOIN country c ON l.COUNTRY_ID=c.COUNTRY_ID
+-- JOIN department d on d.LOCATION_ID=l.location_ID;      [Solution Prof]
+
+/* Query 7 - Same of above but with department name */
+SELECT location_id, street_address, postal_code, city, country_name, department_name
+FROM location
+JOIN country USING (country_id)
+JOIN department USING (location_id);
+
+-- SELECT STREET_ADDRESS, POSTAL_CODE, CITY, STATE_PROVINCE, COUNTRY_NAME, DEPARTMENT_NAME
+-- FROM location l
+-- JOIN country c ON l.COUNTRY_ID=c.COUNTRY_ID
+-- JOIN department d ON l.LOCATION_ID=d.LOCATION_ID;        [Solution Prof]
+
+/* Query 8 - Are there locations without any department? list them. */
+SELECT location_id, street_address, postal_code, city, country_name
+FROM location
+JOIN country USING (country_id)
+WHERE location_id NOT IN (SELECT location_id FROM department);
+
+-- SELECT l.STREET_ADDRESS, l.POSTAL_CODE, l.CITY, l.STATE_PROVINCE, d.DEPARTMENT_ID
+-- FROM location l
+-- LEFT JOIN department d on l.LOCATION_ID=d.location_ID
+-- WHERE d.DEPARTMENT_ID IS NULL;        [Solution Prof]
+
+/* Query 9 - List the job titles with number of employees and average salary, sorted by average salary from highest to lowest. */
+SELECT job_title, COUNT(employee_id) AS "Number of Employees", AVG(salary) AS "Average Salary"
+FROM employee
+JOIN job USING (job_id)
+GROUP BY job_id
+ORDER BY AVG(salary) DESC;
+
+-- SELECT j.JOB_TITLE, ROUND(AVG(e.salary),2) as aver_sal, COUNT(1) as numb_emp
+-- FROM job j
+-- JOIN employee e on e.JOB_ID=j.JOB_ID
+-- GROUP BY j.JOB_ID
+-- ORDER BY aver_sal DESC;        [Solution Prof]
+
+/* Query 10 - List the department names with number of employees of each one including the ones without employees. */
+SELECT department_name, COUNT(employee_id) AS "Number of Employees"
+FROM department
+LEFT JOIN employee USING (department_id)
+GROUP BY department_id;
+
+-- SELECT d.DEPARTMENT_NAME, count(e.EMPLOYEE_ID) as numb_emp
+-- FROM department d
+-- LEFT JOIN employee e on e.DEPARTMENT_ID = d.DEPARTMENT_ID
+-- GROUP BY d.DEPARTMENT_ID;        [Solution Prof]
+
+/* Query 11 - List employees' names with their managers' names. The manager name should concatenate the name and family name in one single field. */
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name", CONCAT(m.first_name, ' ', m.last_name) AS "Manager Name"
+FROM employee e
+LEFT JOIN employee m ON e.manager_id = m.employee_id;
+
+-- SELECT e.FIRST_NAME, e.LAST_NAME, concat(s.FIRST_NAME, " ", s.LAST_NAME)
+-- as ManagerName
+-- from employee as e
+-- join employee as s on e.MANAGER_ID=s.EMPLOYEE_ID;       [Solution Prof]
 
 /* ======================================================================================================== */
-
-/* LAB 4: 25/11/2024
-AAAAAAAAAAAAA
+/* ------------------------------------------- LAB 5: 02/12/2024 ------------------------------------------- 
+  More Joins and Views – LAB 5
+    1. List all managers with number of managed employees, where the number of managed employees is bigger than 4.
+    2. List former job titles, start, and end dates of the employees sorted by start date.
+    3. Count employees by regions where there are employees.
+    4. Create a view jobtitle_salary with two columns:
+      - salary
+      - job title
+    (No personal information should be included; The President’s salary should not be listed)
+    5. Create a view jobtitle_salary_avg with averaged salaries by Job
+      - average salary
+      - job title
+      (Again, the President’s salary should not be listed)
+    6. Use the view jobtitle_salary to calculate the average salary by job title
+    7. Is the result from above equivalent of the one from jobtitle_salary_avg ignoring the order? And why?
+    8. Create a view employee_country that contains only the employees that belong to a department and that
+    department has been assigned to a location and country. The view should show two columns:
+      - full employee’s name
+      - county name where his department is located
 */
+
+
