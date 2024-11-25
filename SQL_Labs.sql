@@ -539,20 +539,22 @@ SELECT last_name
 FROM employee
 WHERE last_name LIKE 'A%';
 
--- SELECT e.last_name from employee as e where e.last_name like 'a%';        [Solution Prof]
+-- SELECT e.last_name 
+-- FROM employee AS e where e.last_name like 'a%';        [Solution Prof]
 
 /* Query 2 - Write a query to display the last name and the email of each employee (append '@novaims.unl.pt' to the email column). */
-SELECT last_name, CONCAT(email, '@novaims.unl.pt') AS "Email"
+SELECT last_name, CONCAT(LOWER(email), '@novaims.unl.pt') AS "Email"
 FROM employee;
 
--- SELECT e.last_name, concat(e.email,'@novaims.unl.pt') from employee as e;        [Solution Prof]
+-- SELECT e.last_name, CONCAT(e.email,'@novaims.unl.pt') 
+-- FROM employee AS e;        [Solution Prof]
 
 /* Query 3 - Update the column EMAIL of the employees to append '@novaims.unl.pt'. */
 UPDATE employee
 SET email = CONCAT(email, '@novaims.unl.pt');
 
--- update employee as e
--- set e.email = concat(e.email,'@novaims.unl.pt');        [Solution Prof]
+-- UPDATE employee AS e
+-- SET e.email = CONCAT(e.email,'@novaims.unl.pt');        [Solution Prof]
 
 /* Query 4 - Write a query to display the number of employees whose first names contain an 'a' and that have the same job. */
 SELECT COUNT(*) AS "Number of Employees"
@@ -560,25 +562,28 @@ FROM employee
 WHERE first_name LIKE '%a%' AND job_id IN (
     SELECT job_id
     FROM employee
+    WHERE first_name LIKE '%a%'
     GROUP BY job_id
     HAVING COUNT(job_id) > 1
 );
 
--- SELECT e.job_id, count(e.employee_id) from employee as e
--- where e.first_name like '%a%'
--- GROUP BY e.job_id;        [Solution Prof]
+-- SELECT e.job_id, count(e.employee_id) FROM employee AS e
+-- WHERE e.first_name LIKE '%a%'
+-- GROUP BY e.job_id
+-- ORDER BY count(e.employee_id) DESC;                        [Solution Prof]
 
 /* Query 5 - Write a query to get the average salary for all departments employing more than 15 employees. Round the average salary to 2 decimals. */
-SELECT department_id, ROUND(AVG(salary), 2) AS "Average Salary"
-FROM employee
-GROUP BY department_id
+SELECT department_name, ROUND(AVG(salary), 2) AS "Average Salary"
+FROM employee, department
+WHERE employee.department_id = department.department_id
+GROUP BY employee.department_id
 HAVING COUNT(*) > 15;
 
--- SELECT e.department_id, round(avg(e.salary),2) as avg_salary,
--- count(e.employee_id) as emp_x_dep
--- FROM employee as e
+-- SELECT e.department_id, ROUND(avg(e.salary),2) AS avg_salary,
+-- count(e.employee_id) AS emp_x_dep
+-- FROM employee AS e
 -- GROUP BY e.department_id
--- having emp_x_dep > 15;        [Solution Prof]
+-- HAVING emp_x_dep > 15;        [Solution Prof]
 
 /* Query 6 - List locations with theirs' addresses including country names */
 SELECT location_id, street_address, postal_code, city, country_name
@@ -588,7 +593,7 @@ JOIN country USING (country_id);
 -- SELECT DEPARTMENT_NAME, STREET_ADDRESS, POSTAL_CODE, CITY, STATE_PROVINCE, COUNTRY_NAME
 -- FROM location l
 -- JOIN country c ON l.COUNTRY_ID=c.COUNTRY_ID
--- JOIN department d on d.LOCATION_ID=l.location_ID;      [Solution Prof]
+-- JOIN department d ON d.LOCATION_ID=l.location_ID;      [Solution Prof]
 
 /* Query 7 - Same of above but with department name */
 SELECT location_id, street_address, postal_code, city, country_name, department_name
@@ -609,19 +614,19 @@ WHERE location_id NOT IN (SELECT location_id FROM department);
 
 -- SELECT l.STREET_ADDRESS, l.POSTAL_CODE, l.CITY, l.STATE_PROVINCE, d.DEPARTMENT_ID
 -- FROM location l
--- LEFT JOIN department d on l.LOCATION_ID=d.location_ID
+-- LEFT JOIN department d ON l.LOCATION_ID=d.location_ID
 -- WHERE d.DEPARTMENT_ID IS NULL;        [Solution Prof]
 
-/* Query 9 - List the job titles with number of employees and average salary, sorted by average salary from highest to lowest. */
+/* Query 9 - List the job titles with number of employees and average salary, sorted by average salary FROM highest to lowest. */
 SELECT job_title, COUNT(employee_id) AS "Number of Employees", AVG(salary) AS "Average Salary"
 FROM employee
 JOIN job USING (job_id)
 GROUP BY job_id
 ORDER BY AVG(salary) DESC;
 
--- SELECT j.JOB_TITLE, ROUND(AVG(e.salary),2) as aver_sal, COUNT(1) as numb_emp
+-- SELECT j.JOB_TITLE, ROUND(AVG(e.salary),2) AS aver_sal, COUNT(1) AS numb_emp
 -- FROM job j
--- JOIN employee e on e.JOB_ID=j.JOB_ID
+-- JOIN employee e ON e.JOB_ID=j.JOB_ID
 -- GROUP BY j.JOB_ID
 -- ORDER BY aver_sal DESC;        [Solution Prof]
 
@@ -631,9 +636,9 @@ FROM department
 LEFT JOIN employee USING (department_id)
 GROUP BY department_id;
 
--- SELECT d.DEPARTMENT_NAME, count(e.EMPLOYEE_ID) as numb_emp
+-- SELECT d.DEPARTMENT_NAME, count(e.EMPLOYEE_ID) AS numb_emp
 -- FROM department d
--- LEFT JOIN employee e on e.DEPARTMENT_ID = d.DEPARTMENT_ID
+-- LEFT JOIN employee e ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
 -- GROUP BY d.DEPARTMENT_ID;        [Solution Prof]
 
 /* Query 11 - List employees' names with their managers' names. The manager name should concatenate the name and family name in one single field. */
@@ -641,10 +646,9 @@ SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name", CONCAT(m.first
 FROM employee e
 LEFT JOIN employee m ON e.manager_id = m.employee_id;
 
--- SELECT e.FIRST_NAME, e.LAST_NAME, concat(s.FIRST_NAME, " ", s.LAST_NAME)
--- as ManagerName
--- from employee as e
--- join employee as s on e.MANAGER_ID=s.EMPLOYEE_ID;       [Solution Prof]
+-- SELECT e.FIRST_NAME, e.LAST_NAME, CONCAT(s.FIRST_NAME, " ", s.LAST_NAME) AS ManagerName
+-- FROM employee AS e
+-- JOIN employee AS s ON e.MANAGER_ID=s.EMPLOYEE_ID;       [Solution Prof]
 
 /* ======================================================================================================== */
 /* ------------------------------------------- LAB 5: 02/12/2024 ------------------------------------------- 
