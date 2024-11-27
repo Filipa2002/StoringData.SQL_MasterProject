@@ -1,5 +1,4 @@
 DELIMITER $$
--- Triggers
 
 -- Trigger to log whenever a new project is created
 CREATE TRIGGER ProjectCreateTrigger 
