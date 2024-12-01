@@ -1,6 +1,14 @@
--- Step 1: Create Database
+-- Create Database for our business 
 CREATE DATABASE IF NOT EXISTS NOVAloitteDB;
 USE NOVAloitteDB;
+
+-- Locations Table 
+CREATE TABLE Locations (
+    LocationID INT PRIMARY KEY AUTO_INCREMENT,
+    City VARCHAR(100),
+    State VARCHAR(100),
+    Country VARCHAR(100)
+);
 
 -- Clients Table
 CREATE TABLE Clients (
@@ -11,7 +19,12 @@ CREATE TABLE Clients (
     Phone VARCHAR(20),
     Address VARCHAR(255),
     Industry VARCHAR(100),
-    ClientSince DATE
+    ClientSince DATE,
+    LocationID INT,
+    ApplyDiscount BOOL,
+    FOREIGN KEY (LocationID) REFERENCES Locations(LocationID) CONSTRAINT FK_ClientLocation
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
 );
 
 -- Projects Table
@@ -23,9 +36,11 @@ CREATE TABLE Projects (
     StartDate DATE,
     EndDate DATE,
     Status VARCHAR(50),
-    Budget DECIMAL(10, 2),
-    FOREIGN KEY (ClientID) REFERENCES Clients(ClientID)
-    ON DELETE CASCADE
+    PaymentSubtotal DECIMAL(10, 2),
+    DiscountValue DECIMAL(10, 2),
+	TaxRate DECIMAL(3, 1), 
+    FOREIGN KEY (ClientID) REFERENCES Clients(ClientID) CONSTRAINT FK_ProjectClient
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 
@@ -41,17 +56,27 @@ CREATE TABLE Employees (
     Salary DECIMAL(10, 2)
 );
 
+-- Departments Table
+CREATE TABLE Departments (
+    DepartmentID INT PRIMARY KEY AUTO_INCREMENT,
+    DepartmentName VARCHAR(100),
+    ManagerID INT,
+    FOREIGN KEY (ManagerID) REFERENCES Employees(EmployeeID) CONSTRAINT FK_DepartmentManager
+    ON DELETE RESTRICT 
+    ON UPDATE CASCADE
+);
+
 -- ProjectConsultants Table
 CREATE TABLE ProjectConsultants (
-    ProjectConsultantID INT PRIMARY KEY AUTO_INCREMENT,
     ProjectID INT,
     EmployeeID INT,
-    Role VARCHAR(100),
-    FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
-    ON DELETE CASCADE
+    EmployeeRole VARCHAR(100),
+    PRIMARY KEY (ProjectID, EmployeeID),  -- Composite Primary Key
+    FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID) CONSTRAINT FK_ConsultantProject
+    ON DELETE RESTRICT
     ON UPDATE CASCADE,
-    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
-    ON DELETE CASCADE
+    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID) CONSTRAINT FK_ConsultantEmployee
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 
@@ -63,8 +88,8 @@ CREATE TABLE CollectedData (
     Format VARCHAR(50),
     CollectionDate DATE,
     Status VARCHAR(50),
-    FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
-    ON DELETE CASCADE
+    FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID) CONSTRAINT FK_DataProject
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 
@@ -76,40 +101,43 @@ CREATE TABLE Reports (
     ReportDate DATE,
     ReportStatus VARCHAR(50),
     ReportContent TEXT,
-    FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
-    ON DELETE CASCADE
+    FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID) CONSTRAINT FK_ReportProject
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 
--- Contracts Table
-CREATE TABLE Contracts (
-    ContractID INT PRIMARY KEY AUTO_INCREMENT,
-    ClientID INT,
+-- Deliverables Table 
+CREATE TABLE Services (
+    ServicesID INT PRIMARY KEY AUTO_INCREMENT,
     ProjectID INT,
-    ContractDate DATE,
-    StartDate DATE,
-    EndDate DATE,
-    TotalValue DECIMAL(10, 2),
-    Terms TEXT,
-    FOREIGN KEY (ClientID) REFERENCES Clients(ClientID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-    FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID)
-    ON DELETE CASCADE
+    ServiceType VARCHAR(255),
+    ShortDescription TEXT,
+    ServiceDate DATE,
+    ServiceCost DECIMAL(100, 2),
+    ServiceStatus VARCHAR(50),
+    FOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID) CONSTRAINT FK_ServicesProject
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 
--- Invoices Table
-CREATE TABLE Invoices (
-    InvoiceID INT PRIMARY KEY AUTO_INCREMENT,
-    ContractID INT,
-    IssueDate DATE,
-    DueDate DATE,
-    Amount DECIMAL(10, 2),
-    PaidAmount DECIMAL(10, 2),
-    Status VARCHAR(50),
-    FOREIGN KEY (ContractID) REFERENCES Contracts(ContractID)
-    ON DELETE CASCADE
+-- Skills Table
+CREATE TABLE Skills (
+    SkillID INT PRIMARY KEY AUTO_INCREMENT,
+    SkillName VARCHAR(100),
+    SkillLevel VARCHAR(100),
+    CertificationRequired VARCHAR(10)
+);
+
+-- EmployeeSkills Table (Relationship between Employees and Skills)
+CREATE TABLE EmployeeSkills (
+    EmployeeID INT,
+    SkillID INT,
+	PRIMARY KEY (EmployeeID, SkillID),  -- Composite Primary Key
+    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID) CONSTRAINT FK_EmployeeSkillEmployee
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+    FOREIGN KEY (SkillID) REFERENCES Skills(SkillID) CONSTRAINT FK_EmployeeSkillSkill
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 
@@ -120,7 +148,7 @@ CREATE TABLE Logs (
     Description TEXT,
     Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UserID INT,
-    FOREIGN KEY (UserID) REFERENCES Employees(EmployeeID)
-    ON DELETE CASCADE
+    FOREIGN KEY (UserID) REFERENCES Employees(EmployeeID) CONSTRAINT FK_LogEmployee
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
