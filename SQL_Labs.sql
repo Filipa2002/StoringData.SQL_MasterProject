@@ -586,7 +586,7 @@ HAVING COUNT(*) > 15;
 -- HAVING emp_x_dep > 15;        [Solution Prof]
 
 /* Query 6 - List locations with theirs' addresses including country names */
-SELECT location_id, street_address, postal_code, city, country_name
+SELECT location.location_id, street_address, postal_code, city, country_name
 FROM location, country, department
 WHERE location.country_id = country.country_id AND location.location_id = department.location_id;
 
@@ -672,7 +672,8 @@ WHERE e.manager_id = m.employee_id;
 */
 
 /* Query 1 - List all managers with number of managed employees, where the number of managed employees is bigger than 4. */
-SELECT CONCAT(m.first_name, ' ', m.last_name) AS "Manager Name", COUNT(e.employee_id) AS "Number of Managed Employees"
+SELECT CONCAT(m.first_name, ' ', m.last_name) AS "Manager Name", 
+       COUNT(e.employee_id) AS "Number of Managed Employees"
 FROM employee e, employee m
 WHERE e.manager_id = m.employee_id
 GROUP BY m.employee_id
