@@ -18,6 +18,7 @@
 
 
 /* 1st step: create a database 'hr' */
+DROP DATABASE IF EXISTS HR;
 CREATE DATABASE IF NOT EXISTS HR;
 
 /*tell which database you will use*/
