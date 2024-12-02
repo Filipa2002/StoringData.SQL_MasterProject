@@ -672,4 +672,157 @@ LEFT JOIN employee m ON e.manager_id = m.employee_id;
       - county name where his department is located
 */
 
+/* Query 1 - List all managers with number of managed employees, where the number of managed employees is bigger than 4. */
+SELECT CONCAT(m.first_name, ' ', m.last_name) AS "Manager Name", COUNT(e.employee_id) AS "Number of Managed Employees"
+FROM employee e
+JOIN employee m ON e.manager_id = m.employee_id
+GROUP BY m.employee_id
+HAVING COUNT(e.employee_id) > 4;
 
+-- SELECT s.FIRST_NAME, s.LAST_NAME, COUNT(1) AS numb_managed
+-- FROM employee AS e
+-- JOIN employee AS s ON e.MANAGER_ID=s.EMPLOYEE_ID
+-- GROUP BY s.EMPLOYEE_ID
+-- HAVING numb_managed > 4;        [Solution Prof]
+
+/* Query 2 - List former job titles, start, and end dates of the employees sorted by start date. */
+SELECT e.first_name, e.last_name, jh.job_id, j.job_title, jh.start_date, jh.end_date
+FROM employee e
+JOIN job_history jh ON e.employee_id = jh.employee_id
+JOIN job j ON jh.job_id = j.job_id
+ORDER BY jh.start_date;
+
+-- SELECT j.JOB_TITLE, e.FIRST_NAME, e.LAST_NAME, jh.START_DATE, jh.END_DATE
+-- FROM job_history jh
+-- JOIN employee e ON jh.EMPLOYEE_ID=e.EMPLOYEE_ID
+-- JOIN job j ON jh.JOB_ID=j.JOB_ID
+-- ORDER BY jh.START_DATE;       [Solution Prof]
+
+/* Query 3 - Count employees by regions where there are employees. */
+SELECT c.country_name, COUNT(e.employee_id) AS "Number of Employees"
+FROM employee e
+JOIN department d ON e.department_id = d.department_id
+JOIN location l ON d.location_id = l.location_id
+JOIN country c ON l.country_id = c.country_id
+GROUP BY c.country_id;
+
+-- SELECT r.REGION_NAME, COUNT(1) AS numb_emp
+-- FROM region r
+-- JOIN country c ON c.REGION_ID=r.REGION_ID
+-- JOIN location l ON l.COUNTRY_ID=c.COUNTRY_ID
+-- JOIN department d ON d.LOCATION_ID=l.LOCATION_ID
+-- JOIN employee e ON e.DEPARTMENT_ID=d.DEPARTMENT_ID
+-- GROUP BY r.REGION_ID;        [Solution Prof]
+
+/* Query 4 - Create a view jobtitle_salary with two columns: salary and job title */
+CREATE VIEW jobtitle_salary AS
+SELECT salary, job_title
+FROM job
+WHERE job_id != 'AD_PRES';
+
+-- CREATE VIEW jobtitle_salary AS
+-- SELECT salary, j.JOB_TITLE 
+-- FROM employee e
+-- LEFT JOIN job j ON e.JOB_ID=j.JOB_ID
+-- WHERE NOT j.JOB_TITLE = 'President';
+
+/* Query 5 - Create a view jobtitle_salary_avg with averaged salaries by Job */
+CREATE VIEW jobtitle_salary_avg AS
+SELECT AVG(salary) AS "Average Salary", job_title
+FROM job
+WHERE job_id != 'AD_PRES'
+GROUP BY job_id;
+
+-- CREATE VIEW jobtitle_salary_avg AS
+-- SELECT AVG(salary) AS salary_avg, j.JOB_TITLE 
+-- FROM employee e
+-- LEFT JOIN job j ON e.JOB_ID=j.JOB_ID
+-- WHERE NOT j.JOB_TITLE = 'President'
+-- GROUP BY j.JOB_ID;
+
+/* Query 6 - Use the view jobtitle_salary to calculate the average salary by job title */
+SELECT AVG(salary) AS "Average Salary", job_title
+FROM jobtitle_salary
+GROUP BY job_title;
+
+-- SELECT AVG(salary) AS salary_avg, job_title 
+-- FROM jobtitle_salary
+-- GROUP BY JOB_TITLE;        [Solution Prof]
+
+/* Query 7 - Is the result from above equivalent of the one from jobtitle_salary_avg ignoring the order? And why? */
+-- Answer: The content of the resulting tables may be the same but is not equivalent.
+--         The grouping in the last query is done over Job Title, which is not unique, while the view jobtitle_salary_avg has
+--         grouping over job_id which is unique (as primary key). So, it is possible to add a new job_id with already existing
+--         job title and then the result will not be the same.
+
+/* Query 8 - Create a view employee_country that contains only the employees that belong to a department and that department has been assigned to a location and country. */
+CREATE VIEW employee_country AS
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name", c.country_name
+FROM employee e
+JOIN department d ON e.department_id = d.department_id
+JOIN location l ON d.location_id = l.location_id
+JOIN country c ON l.country_id = c.country_id;
+
+-- CREATE VIEW employee_country AS
+-- SELECT CONCAT(e.FIRST_NAME,' ',e.LAST_NAME) AS name, c.COUNTRY_NAME AS country
+-- FROM employee AS e
+-- JOIN department d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+-- JOIN location l ON d.LOCATION_ID = l.LOCATION_ID
+-- JOIN country c ON l.COUNTRY_ID = c.COUNTRY_ID;        [Solution Prof]
+
+/* ======================================================================================================== */
+/* ------------------------------------------- LAB 6: 09/12/2024 -------------------------------------------
+  ##### Query Optimization Exercises – Part 1
+    Load and run the 'create_flropt_db' script from Moodle:
+      1. From the flights table retrieve the flight where the flight_number_id is '146225'. Look at the query
+      stats using the EXPLAIN operator, also can you see the query’s Execution Plan?
+      2. From the flight_numbers table select the flight with flight_number_id equal to 127. Look at the query
+      stats (you can use the EXPLAIN operator).
+      3. From the flight_numbers table select the flight with flight_number equal to ‘DL9411’. Look at the query
+      stats (you can use the EXPLAIN operator).
+      4. Can you detect any difference in terms of query stats from the two previous questions?
+      5. What are the top five countries that received the most flights?
+      6. What are the top five airline company names with the highest number of cancelled flights?
+    
+    Load and run the 'flropt_fkeys' script from Moodle:
+      7. Re-run the queries you’ve built in questions 1, 4 and 5. Can you detect any differences?
+
+  ##### Trigger Exercises – LAB 6
+    Implement logging for changes in table "employees" using triggers:
+      1. Create a table called "log" with columns:
+        ID (primary key, unsigned, integer, autoincrement),
+        TS (DATETIME),
+        USR (Varchar),
+        EV (Varchar),
+        MSG (Varchar)
+      2. Create a trigger that, after a new employee is added, adds to the "log" table:
+        a) The current time (use function "NOW()").
+        b) The current user ("USER()").
+        c) The text "add".
+        d) The employee’s full name.
+      3. Same exercise, but when the "employee" table has an updated row (change the text to "update").
+      4. Same exercise, but when some employee is deleted (change the text to "delete").
+      5. Modify, add, and delete some rows in the "employee" table and observe the content of the "log" table.
+    Implement a table with the current salary property over the whole company (min, max, average, count, last updated), 
+    updated by triggers every time employees are added, removed, or changed:
+      6. Create a table "status" with the columns:
+        PK (Primary key, Integer, default 0),
+        SALARY_MIN (FLOAT),
+        SALARY_MAX (FLOAT),
+        SALARY_AVG (FLOAT),
+        EMP_COUNT (INTEGER, UNSIGNED, DEFAULT 0, NOT NULL),
+        LAST_UPD (DATATIME)
+      7. Create a query that replaces the single row in "status" with actual values. Use REPLACE ... SELECT syntax:
+        REPLACE status
+        (PK, SALARY_AVG, SALARY_MIN, SALARY_MAX, EMP_COUNT, LAST_UPD)
+        SELECT 0, avg(SALARY), max(SALARY), min(SALARY), COUNT(1),
+        NOW() FROM employee;
+
+    Create triggers in the employee table after delete that update the content of table "status" using the
+    query from the previous point.
+      8. Enhance the triggers from questions 2 and 3 to perform on the status table.
+      9. Modify the "employee" table and observe the changes in the "status" table.
+*/
+
+/* Query 1 - From the flights table retrieve the flight where the flight_number_id is '146225'. 
+             Look at the query stats using the EXPLAIN operator, also can you see the query’s Execution Plan? */
