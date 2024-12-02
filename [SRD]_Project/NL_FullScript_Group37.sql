@@ -251,10 +251,10 @@ INSERT INTO Projects (ClientID, ProjectName, Description, StartDate, EndDate, St
 (2, 'Market Expansion Analysis', 'Analysis of market trends for NextGen Solutions.', '2023-03-01', '2023-07-01', 'In Progress', 25000.00, 0.00, 10.0),
 (2, 'Strategic Partnership Development', 'Developing strategic partnerships for NextGen Solutions.', '2023-07-01', '2024-12-01', 'In Progress', 22000.00, 0.00, 10.0),
 (3, 'Data Analytics Integration', 'Integrating advanced data analytics for Quantum Systems.', '2023-06-20', '2024-12-20', 'In Progress', 35000.00, 1500.00, 8.0),
-(3, 'Cloud Optimization', 'Optimizing cloud infrastructure for Quantum Systems.', '2023-09-01', '2024-12-01', 'In Progress', 27000.00, 0.00, 8.0),
-(4, 'UX/UI Overhaul', 'Complete redesign of the user experience for Digital Creators.', '2023-02-10', '2023-06-10', 'Completed', 18000.00, 900.00, 10.0),
+(3, 'Cloud Optimization', 'Optimizing cloud infrastructure for Quantum Systems.', '2023-09-01', '2024-12-01', 'In Progress', 26500.00, 0.00, 8.0),
+(4, 'UX/UI Overhaul', 'Complete redesign of the user experience for Digital Creators.', '2023-02-10', '2023-06-10', 'Completed', 21000.00, 900.00, 10.0),
 (5, 'AI Implementation', 'Developing AI solutions for Futuristic Insights.', '2023-07-20', '2024-12-31', 'In Progress', 27000.00, 0.00, 9.0),
-(6, 'Cloud Security Enhancement', 'Improving cloud security for Cloud Pioneers.', '2023-08-05', '2023-11-05', 'Completed', 22000.00, 1100.00, 10.0),
+(6, 'Cloud Security Enhancement', 'Improving cloud security for Cloud Pioneers.', '2023-08-05', '2023-11-05', 'Completed', 20000.00, 1100.00, 10.0),
 (6, 'Cloud Backup Solutions', 'Providing cloud backup solutions for Cloud Pioneers.', '2023-10-01', '2025-03-01', 'In Progress', 20000.00, 0.00, 10.0),
 (7, 'Big Data Solutions', 'Providing big data analytics for Innovation & Beyond.', '2023-04-17', '2024-10-17', 'In Progress', 30000.00, 0.00, 8.0),
 (8, 'Automation Strategy', 'Designing automation strategies for Data Dynamics.', '2023-05-01', '2023-09-01', 'Completed', 26000.00, 1300.00, 10.0),
@@ -438,7 +438,16 @@ INSERT INTO ProjectConsultants (ProjectID, EmployeeID, EmployeeRole) VALUES
 (17, 8, 'Solutions Architect'),
 (18, 9, 'IT Support Specialist'),
 (19, 10, 'Cloud Consultant'),
-(20, 11, 'Service Manager');
+(20, 11, 'Service Manager'),
+(20, 12, 'Product Specialist'),
+(21, 13, 'Data Scientist'),
+(21, 14, 'AI Researcher'),
+(22, 15, 'Blockchain Developer'),
+(22, 16, 'Security Analyst'),
+(23, 17, 'UX/UI Designer'),
+(23, 18, 'Front-End Developer'),
+(24, 19, 'Business Intelligence Analyst'),
+(24, 20, 'Data Engineer');
 
 -- Insert CollectedData
 INSERT INTO CollectedData (ProjectID, DataType, Format, CollectionDate) VALUES
@@ -476,26 +485,95 @@ INSERT INTO Reports (ProjectID, ReportTitle, ReportDate, ReportContent) VALUES
 
 -- Insert Services
 INSERT INTO Services (ProjectID, ServiceType, ShortDescription, ServiceDate, ServiceCost, ServiceStatus) VALUES
-(1, 'Cloud Hosting', 'Provisioning of cloud hosting services for the client.', '2023-01-30', 5000.00, 'Completed'),
-(2, 'Market Research', 'Providing detailed market research on industry trends.', '2023-04-10', 3000.00, 'Completed'),
-(3, 'Data Analytics', 'Delivering analytical insights to improve data-driven decision-making.', '2024-07-12', 4500.00, 'In Progress'),
-(4, 'UX/UI Design', 'Redesign of the client’s website UI for improved user experience.', '2023-04-01', 2500.00, 'Completed'),
-(5, 'AI Implementation', 'Integrating AI-driven solutions into the client’s business processes.', '2024-05-05', 7000.00, 'In Progress'),
-(6, 'Cloud Security Setup', 'Implementing security measures for the cloud infrastructure.', '2023-08-01', 6000.00, 'In Progress'),
-(7, 'Big Data Integration', 'Integration of big data solutions to handle large datasets efficiently.', '2023-06-05', 8000.00, 'Completed'),
-(8, 'Automation Tools', 'Delivering automation tools for increased operational efficiency.', '2023-05-25', 4000.00, 'Completed'),
-(9, 'Cybersecurity Audit', 'Performing cybersecurity audits to detect vulnerabilities in systems.', '2023-06-10', 5000.00, 'In Progress'),
-(10, 'Blockchain Implementation', 'Deploying blockchain solutions for enhanced transparency.', '2024-07-20', 9500.00, 'Completed'),
-(11, 'Data Processing System', 'Overhauling the data processing system to improve speed and efficiency.', '2023-04-01', 7500.00, 'Completed'),
-(12, 'Digital Transformation', 'Providing digital transformation services for business process optimization.', '2024-08-15', 12000.00, 'In Progress'),
-(13, 'Data Center Setup', 'Establishing a new data center to increase operational capacity.', '2024-09-01', 11000.00, 'In Progress'),
-(14, 'Cloud App Development', 'Developing a cloud-based application for the client’s internal use.', '2023-03-15', 8500.00, 'Completed'),
-(15, 'Blockchain Development', 'Blockchain application development for secure transactions.', '2024-06-01', 9800.00, 'In Progress'),
-(16, 'Mobile App Optimization', 'Enhancing the client’s mobile app to increase performance.', '2023-07-01', 5500.00, 'In Progress'),
-(17, 'IT Infrastructure Setup', 'Setting up the IT infrastructure for smooth business operations.', '2023-08-25', 9000.00, 'Completed'),
-(18, 'Data Migration', 'Migrating the client’s data to the latest technology platform.', '2023-06-05', 6700.00, 'Completed'),
-(19, 'Tech Support', 'Providing ongoing tech support services for client operations.', '2024-09-01', 3500.00, 'In Progress'),
-(20, 'Cloud Consulting', 'Providing expert consulting for cloud infrastructure solutions.', '2023-06-10', 4200.00, 'Completed');
+-- Project 1
+(1, 'Cloud Hosting', 'Provisioning of cloud hosting services for the client.', '2023-01-30', 6000.00, 'Completed'),
+(1, 'Data Migration', 'Migrating data to the cloud infrastructure.', '2023-02-15', 7000.00, 'Completed'),
+(1, 'Security Setup', 'Implementing security measures for the cloud infrastructure.', '2023-03-01', 7000.00, 'Completed'),
+-- Project 2
+(2, 'Market Research', 'Providing detailed market research on industry trends.', '2023-04-10', 5000.00, 'Completed'),
+(2, 'Infrastructure Analysis', 'Analyzing the current tech infrastructure.', '2023-05-01', 5000.00, 'In Progress'),
+(2, 'Upgrade Implementation', 'Implementing the infrastructure upgrade.', '2023-06-01', 5000.00, 'In Progress'),
+-- Project 3
+(3, 'Data Analytics', 'Delivering analytical insights to improve data-driven decision-making.', '2024-07-12', 12500.00, 'In Progress'),
+(3, 'Market Trends Analysis', 'Analyzing market trends for strategic decisions.', '2023-04-01', 6250.00, 'In Progress'),
+(3, 'Reporting', 'Providing detailed reports on market expansion.', '2023-05-01', 6250.00, 'In Progress'),
+-- Project 4
+(4, 'UX/UI Design', 'Redesign of the client’s website UI for improved user experience.', '2023-04-01', 8000.00, 'Completed'),
+(4, 'Implementation', 'Implementing the new UI design.', '2023-05-01', 14000.00, 'Completed'),
+-- Project 5
+(5, 'AI Implementation', 'Integrating AI-driven solutions into the client’s business processes.', '2024-05-05', 15000.00, 'In Progress'),
+(5, 'Data Analysis', 'Analyzing data for AI integration.', '2023-08-01', 10000.00, 'In Progress'),
+(5, 'Model Training', 'Training AI models for the client’s needs.', '2023-10-01', 10000.00, 'In Progress'),
+-- Project 6
+(6, 'Cloud Security Setup', 'Implementing security measures for the cloud infrastructure.', '2023-08-01', 20000.00, 'In Progress'),
+(6, 'Security Audit', 'Conducting a security audit of the cloud infrastructure.', '2023-09-01', 3500.00, 'In Progress'),
+(6, 'Monitoring', 'Setting up monitoring for the cloud infrastructure.', '2023-10-01', 3000.00, 'In Progress'),
+-- Project 7
+(7, 'Big Data Integration', 'Integration of big data solutions to handle large datasets efficiently.', '2023-06-05', 10000.00, 'Completed'),
+(7, 'Data Analysis', 'Analyzing big data for insights.', '2023-07-01', 8000.00, 'Completed'),
+(7, 'Reporting', 'Providing detailed reports on big data analytics.', '2023-08-01', 3000.00, 'Completed'),
+-- Project 8
+(8, 'Automation Tools', 'Delivering automation tools for increased operational efficiency.', '2023-05-25', 9000.00, 'Completed'),
+(8, 'Implementation', 'Implementing automation tools.', '2023-06-01', 9000.00, 'Completed'),
+(8, 'Training', 'Training staff on the use of automation tools.', '2023-06-15', 9000.00, 'Completed'),
+-- Project 9
+(9, 'Cybersecurity Audit', 'Performing cybersecurity audits to detect vulnerabilities in systems.', '2023-06-10', 7000.00, 'Completed'),
+(9, 'Security Implementation', 'Implementing security measures based on audit findings.', '2023-07-01', 7000.00, 'Completed'),
+(9, 'Monitoring', 'Setting up monitoring for cybersecurity.', '2023-08-01', 6000.00, 'Completed'),
+-- Project 10
+(10, 'Blockchain Implementation', 'Deploying blockchain solutions for enhanced transparency.', '2024-07-20', 10000.00, 'Completed'),
+(10, 'Smart Contracts', 'Developing smart contracts for the client.', '2023-08-01', 5000.00, 'Completed'),
+(10, 'Integration', 'Integrating blockchain with existing systems.', '2023-09-01', 5000.00, 'Completed'),
+-- Project 11
+(11, 'Data Processing System', 'Overhauling the data processing system to improve speed and efficiency.', '2023-04-01', 10000.00, 'Completed'),
+(11, 'Data Analysis', 'Analyzing data for processing improvements.', '2023-05-01', 5000.00, 'Completed'),
+(11, 'Implementation', 'Implementing the new data processing system.', '2023-06-01', 15000.00, 'Completed'),
+-- Project 12
+(12, 'Digital Transformation', 'Providing digital transformation services for business process optimization.', '2024-08-15', 20000.00, 'In Progress'),
+(12, 'Process Analysis', 'Analyzing business processes for digital transformation.', '2023-09-01', 6000.00, 'In Progress'),
+-- Project 13
+(13, 'Data Center Setup', 'Establishing a new data center to increase operational capacity.', '2024-09-01', 20000.00, 'In Progress'),
+(13, 'Implementation', 'Implementing the data center setup.', '2023-11-01', 1000.00, 'In Progress'),
+-- Project 14
+(14, 'Cloud App Development', 'Developing a cloud-based application for the client’s internal use.', '2023-03-15', 20000.00, 'Completed'),
+(14, 'Testing', 'Testing the cloud-based application.', '2023-04-01', 2500.00, 'Completed'),
+(14, 'Deployment', 'Deploying the cloud-based application.', '2023-04-15', 2500.00, 'Completed'),
+-- Project 15
+(15, 'Blockchain Development', 'Blockchain application development for secure transactions.', '2024-06-01', 11000.00, 'In Progress'),
+(15, 'Smart Contracts', 'Developing smart contracts for the client.', '2023-07-01', 9000.00, 'In Progress'),
+(15, 'Integration', 'Integrating blockchain with existing systems.', '2023-08-01', 12000.00, 'In Progress'),
+-- Project 16
+(16, 'Mobile App Optimization', 'Enhancing the client’s mobile app to increase performance.', '2023-07-01', 8000.00, 'In Progress'),
+(16, 'Testing', 'Testing the mobile app for performance.', '2023-08-01', 8000.00, 'In Progress'),
+(16, 'Deployment', 'Deploying the optimized mobile app.', '2023-09-01', 7000.00, 'In Progress'),
+-- Project 17
+(17, 'IT Infrastructure Setup', 'Setting up the IT infrastructure for smooth business operations.', '2023-08-25', 35000.00, 'Completed'),
+-- Project 18
+(18, 'Data Migration', 'Migrating the client’s data to the latest technology platform.', '2023-06-05', 20000.00, 'Completed'),
+(18, 'Testing', 'Testing the migrated data.', '2023-07-01', 10000.00, 'Completed'),
+(18, 'Deployment', 'Deploying the migrated data.', '2023-07-15', 10000.00, 'Completed'),
+-- Project 19
+(19, 'Tech Support', 'Providing ongoing tech support services for client operations.', '2024-09-01', 9000.00, 'In Progress'),
+(19, 'Issue Resolution', 'Resolving technical issues for the client.', '2023-10-01', 5000.00, 'In Progress'),
+(19, 'Training', 'Training staff on tech support procedures.', '2023-11-01', 5000.00, 'In Progress'),
+-- Project 20
+(20, 'Cloud Consulting', 'Providing consulting services for cloud infrastructure optimization.', '2024-08-01', 27000.00, 'In Progress'),
+-- Project 21
+(21, 'Data Analysis', 'Analyzing data for insights.', '2023-07-01', 8000.00, 'In Progress'),
+(21, 'Reporting', 'Providing detailed reports on data analysis.', '2023-08-01', 3000.00, 'In Progress'),
+(21, 'Data Visualization', 'Creating visualizations for data analysis.', '2023-09-01', 13000.00, 'In Progress'),
+-- Project 22
+(22, 'Security Audit', 'Conducting a security audit of the client’s systems.', '2023-06-10', 8000.00, 'Completed'),
+(22, 'Security Implementation', 'Implementing security measures based on audit findings.', '2023-07-01', 8000.00, 'Completed'),
+(22, 'Monitoring', 'Setting up monitoring for cybersecurity.', '2023-08-01', 6000.00, 'Completed'),
+-- Project 23
+(23, 'Blockchain Implementation', 'Deploying blockchain solutions for enhanced transparency.', '2024-07-20', 10000.00, 'Completed'),
+(23, 'Smart Contracts', 'Developing smart contracts for the client.', '2023-08-01', 5000.00, 'Completed'),
+(23, 'Integration', 'Integrating blockchain with existing systems.', '2023-09-01', 6000.00, 'Completed'),
+-- Project 24
+(24, 'Tech Support', 'Providing ongoing tech support services for client operations.', '2024-09-01', 20000.00, 'In Progress'),
+(24, 'Issue Resolution', 'Resolving technical issues for the client.', '2023-10-01', 2500.00, 'In Progress'),
+(24, 'Training', 'Training staff on tech support procedures.', '2023-11-01', 2500.00, 'In Progress');
 
 -- Insert Logs
 INSERT INTO Logs (Action, Description, Date) VALUES
@@ -584,7 +662,7 @@ INSERT INTO Clients (CompanyName, ContactName, Email, Phone, Address, IndustryID
 
 -- Insert a new project
 INSERT INTO Projects (ClientID, ProjectName, Description, StartDate, EndDate, Status, PaymentSubtotal, DiscountValue, TaxRate) VALUES 
-(20, 'AI Chatbot Development', 'Developing an AI chatbot for customer support.', '2023-09-15', '2024-01-15', 'In Progress', 30000.00, 1500.00, 10.0);
+(20, 'AI Chatbot Development', 'Developing an AI chatbot for customer support.', '2023-09-15', '2024-01-15', 'In Progress', 20000.00, 1500.00, 10.0);
 
 -- Insert services for the new project
 INSERT INTO Services (ProjectID, ServiceType, ShortDescription, ServiceDate, ServiceCost, ServiceStatus) VALUES
@@ -615,13 +693,15 @@ SELECT
     c.Phone AS ClientPhone,
     c.Address AS ClientAddress,
     p.PaymentSubtotal AS Subtotal,
-    (p.PaymentSubtotal * p.TaxRate / 100) AS Tax,
+    p.TaxRate AS TaxRate,
+    (p.PaymentSubtotal * p.TaxRate / 100) AS ValueAddedTax,
     p.DiscountValue AS Discount,
     (p.PaymentSubtotal + (p.PaymentSubtotal * p.TaxRate / 100) - p.DiscountValue) AS TotalToPay
 FROM Projects p
 JOIN Clients c ON p.ClientID = c.ClientID;
 
--- View to get all details for Invoices (Service Type, Service Description, Service Date, Service Cost, Service Status == 'Completed')
+-- View to get all details for Invoices (Service Type, Service Description, Service Date, Service Cost)
+DROP VIEW IF EXISTS InvoiceServiceDetails;
 CREATE VIEW InvoiceServiceDetails AS
 SELECT
     s.ProjectID AS ProjectNumber,
@@ -631,8 +711,8 @@ SELECT
     s.ServiceDate,
     s.ServiceCost,
     s.ServiceStatus
-FROM Services s
-WHERE s.ServiceStatus = 'Completed';
+FROM Services s, Projects p
+WHERE s.ProjectID = p.ProjectID;
 
 -- ############################################################################################################
 
