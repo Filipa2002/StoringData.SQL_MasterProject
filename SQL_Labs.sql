@@ -574,22 +574,21 @@ WHERE first_name LIKE '%a%' AND job_id IN (
 -- ORDER BY count(e.employee_id) DESC;                        [Solution Prof]
 
 /* Query 5 - Write a query to get the average salary for all departments employing more than 15 employees. Round the average salary to 2 decimals. */
-SELECT department_name, ROUND(AVG(salary), 2) AS "Average Salary"
+SELECT department_name, ROUND(AVG(salary), 2) AS "Average Salary", COUNT(employee_id) AS "Number of Employees"
 FROM employee, department
 WHERE employee.department_id = department.department_id
 GROUP BY employee.department_id
 HAVING COUNT(*) > 15;
 
--- SELECT e.department_id, ROUND(avg(e.salary),2) AS avg_salary,
--- count(e.employee_id) AS emp_x_dep
+-- SELECT e.department_id, ROUND(avg(e.salary),2) AS avg_salary, COUNT(e.employee_id) AS emp_x_dep
 -- FROM employee AS e
 -- GROUP BY e.department_id
 -- HAVING emp_x_dep > 15;        [Solution Prof]
 
 /* Query 6 - List locations with theirs' addresses including country names */
 SELECT location_id, street_address, postal_code, city, country_name
-FROM location
-JOIN country USING (country_id);
+FROM location, country, department
+WHERE location.country_id = country.country_id AND location.location_id = department.location_id;
 
 -- SELECT DEPARTMENT_NAME, STREET_ADDRESS, POSTAL_CODE, CITY, STATE_PROVINCE, COUNTRY_NAME
 -- FROM location l
@@ -597,10 +596,9 @@ JOIN country USING (country_id);
 -- JOIN department d ON d.LOCATION_ID=l.location_ID;      [Solution Prof]
 
 /* Query 7 - Same of above but with department name */
-SELECT location_id, street_address, postal_code, city, country_name, department_name
-FROM location
-JOIN country USING (country_id)
-JOIN department USING (location_id);
+SELECT department_name, street_address, postal_code, city, country_name, department_name
+FROM location, country, department
+WHERE location.country_id = country.country_id AND location.location_id = department.location_id;
 
 -- SELECT STREET_ADDRESS, POSTAL_CODE, CITY, STATE_PROVINCE, COUNTRY_NAME, DEPARTMENT_NAME
 -- FROM location l
@@ -608,10 +606,10 @@ JOIN department USING (location_id);
 -- JOIN department d ON l.LOCATION_ID=d.LOCATION_ID;        [Solution Prof]
 
 /* Query 8 - Are there locations without any department? list them. */
-SELECT location_id, street_address, postal_code, city, country_name
+SELECT street_address, postal_code, city, state_province, department_id
 FROM location
-JOIN country USING (country_id)
-WHERE location_id NOT IN (SELECT location_id FROM department);
+LEFT JOIN department ON location.location_id = department.location_id        -- Não se pode usar o WHERE para juntar as tabelas porque se não houver departamento, não aparece a localização
+WHERE department.department_id IS NULL;
 
 -- SELECT l.STREET_ADDRESS, l.POSTAL_CODE, l.CITY, l.STATE_PROVINCE, d.DEPARTMENT_ID
 -- FROM location l
@@ -619,7 +617,7 @@ WHERE location_id NOT IN (SELECT location_id FROM department);
 -- WHERE d.DEPARTMENT_ID IS NULL;        [Solution Prof]
 
 /* Query 9 - List the job titles with number of employees and average salary, sorted by average salary FROM highest to lowest. */
-SELECT job_title, COUNT(employee_id) AS "Number of Employees", AVG(salary) AS "Average Salary"
+SELECT job_title, COUNT(employee_id) AS "Number of Employees", ROUND(AVG(salary),2) AS "Average Salary"
 FROM employee
 JOIN job USING (job_id)
 GROUP BY job_id
@@ -644,8 +642,8 @@ GROUP BY department_id;
 
 /* Query 11 - List employees' names with their managers' names. The manager name should concatenate the name and family name in one single field. */
 SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name", CONCAT(m.first_name, ' ', m.last_name) AS "Manager Name"
-FROM employee e
-LEFT JOIN employee m ON e.manager_id = m.employee_id;
+FROM employee e, employee m
+WHERE e.manager_id = m.employee_id;
 
 -- SELECT e.FIRST_NAME, e.LAST_NAME, CONCAT(s.FIRST_NAME, " ", s.LAST_NAME) AS ManagerName
 -- FROM employee AS e
@@ -675,8 +673,8 @@ LEFT JOIN employee m ON e.manager_id = m.employee_id;
 
 /* Query 1 - List all managers with number of managed employees, where the number of managed employees is bigger than 4. */
 SELECT CONCAT(m.first_name, ' ', m.last_name) AS "Manager Name", COUNT(e.employee_id) AS "Number of Managed Employees"
-FROM employee e
-JOIN employee m ON e.manager_id = m.employee_id
+FROM employee e, employee m
+WHERE e.manager_id = m.employee_id
 GROUP BY m.employee_id
 HAVING COUNT(e.employee_id) > 4;
 
@@ -688,9 +686,9 @@ HAVING COUNT(e.employee_id) > 4;
 
 /* Query 2 - List former job titles, start, and end dates of the employees sorted by start date. */
 SELECT e.first_name, e.last_name, jh.job_id, j.job_title, jh.start_date, jh.end_date
-FROM employee e
-JOIN job_history jh ON e.employee_id = jh.employee_id
-JOIN job j ON jh.job_id = j.job_id
+FROM employee e, job_history jh, job j
+WHERE e.employee_id = jh.employee_id AND 
+      jh.job_id = j.job_id
 ORDER BY jh.start_date;
 
 -- SELECT j.JOB_TITLE, e.FIRST_NAME, e.LAST_NAME, jh.START_DATE, jh.END_DATE
@@ -700,12 +698,13 @@ ORDER BY jh.start_date;
 -- ORDER BY jh.START_DATE;       [Solution Prof]
 
 /* Query 3 - Count employees by regions where there are employees. */
-SELECT c.country_name, COUNT(e.employee_id) AS "Number of Employees"
-FROM employee e
-JOIN department d ON e.department_id = d.department_id
-JOIN location l ON d.location_id = l.location_id
-JOIN country c ON l.country_id = c.country_id
-GROUP BY c.country_id;
+SELECT r.region_name, COUNT(e.employee_id) AS "Number of Employees"
+FROM employee e, department d, location l, country c, region r
+WHERE e.department_id = d.department_id AND 
+      d.location_id = l.location_id AND 
+      l.country_id = c.country_id AND
+      c.region_id = r.region_id
+GROUP BY r.region_id;
 
 -- SELECT r.REGION_NAME, COUNT(1) AS numb_emp
 -- FROM region r
@@ -716,10 +715,12 @@ GROUP BY c.country_id;
 -- GROUP BY r.REGION_ID;        [Solution Prof]
 
 /* Query 4 - Create a view jobtitle_salary with two columns: salary and job title */
+DROP VIEW IF EXISTS jobtitle_salary;
 CREATE VIEW jobtitle_salary AS
 SELECT salary, job_title
-FROM job
-WHERE job_id != 'AD_PRES';
+FROM employee
+LEFT JOIN job ON employee.JOB_ID=job.JOB_ID
+WHERE NOT job_title = 'President';
 
 -- CREATE VIEW jobtitle_salary AS
 -- SELECT salary, j.JOB_TITLE 
@@ -728,11 +729,12 @@ WHERE job_id != 'AD_PRES';
 -- WHERE NOT j.JOB_TITLE = 'President';
 
 /* Query 5 - Create a view jobtitle_salary_avg with averaged salaries by Job */
+DROP VIEW IF EXISTS jobtitle_salary_avg;
 CREATE VIEW jobtitle_salary_avg AS
 SELECT AVG(salary) AS "Average Salary", job_title
-FROM job
-WHERE job_id != 'AD_PRES'
-GROUP BY job_id;
+FROM job, employee
+WHERE job.job_id = employee.job_id AND job.job_id != 'President'
+GROUP BY job.job_id;
 
 -- CREATE VIEW jobtitle_salary_avg AS
 -- SELECT AVG(salary) AS salary_avg, j.JOB_TITLE 
@@ -742,7 +744,7 @@ GROUP BY job_id;
 -- GROUP BY j.JOB_ID;
 
 /* Query 6 - Use the view jobtitle_salary to calculate the average salary by job title */
-SELECT AVG(salary) AS "Average Salary", job_title
+SELECT ROUND(AVG(salary),2) AS "Average Salary", job_title
 FROM jobtitle_salary
 GROUP BY job_title;
 
@@ -757,12 +759,13 @@ GROUP BY job_title;
 --         job title and then the result will not be the same.
 
 /* Query 8 - Create a view employee_country that contains only the employees that belong to a department and that department has been assigned to a location and country. */
+DROP VIEW IF EXISTS employee_country;
 CREATE VIEW employee_country AS
 SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name", c.country_name
-FROM employee e
-JOIN department d ON e.department_id = d.department_id
-JOIN location l ON d.location_id = l.location_id
-JOIN country c ON l.country_id = c.country_id;
+FROM employee e, department d, location l, country c
+WHERE e.department_id = d.department_id AND 
+      d.location_id = l.location_id AND 
+      l.country_id = c.country_id;
 
 -- CREATE VIEW employee_country AS
 -- SELECT CONCAT(e.FIRST_NAME,' ',e.LAST_NAME) AS name, c.COUNTRY_NAME AS country
