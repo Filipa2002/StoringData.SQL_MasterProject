@@ -655,6 +655,7 @@ END;
 DELIMITER ;
 
 -- ============================================================================================================
+
 -- Test Triggers
 -- Insert a new client
 INSERT INTO Clients (CompanyName, ContactName, Email, Phone, Address, IndustryID, ClientSince, LocationID, ApplyDiscount) VALUES
@@ -677,46 +678,7 @@ VALUES (25, 'AI Chatbot Development Report', '2023-10-15', 'The AI chatbot devel
 
 -- ############################################################################################################
 
--- Step 4: Create Views
-
--- View to get all information of head and totals for Invoices(Invoice Number, Project Number, Project Date , Client Information, Subtotal, Tax, Discount, Total Paid, Total Due)
-DROP VIEW IF EXISTS InvoiceHeadTotals;
-CREATE VIEW InvoiceHeadTotals AS
-SELECT
-    p.ProjectID AS InvoiceNumber,
-    p.ProjectID AS ProjectNumber,
-    p.ProjectName AS ProjectName,
-    p.EndDate AS ProjectDate,
-    c.CompanyName AS ClientCompany,
-    c.ContactName AS ClientContact,
-    c.Email AS ClientEmail,
-    c.Phone AS ClientPhone,
-    c.Address AS ClientAddress,
-    p.PaymentSubtotal AS Subtotal,
-    p.TaxRate AS TaxRate,
-    (p.PaymentSubtotal * p.TaxRate / 100) AS ValueAddedTax,
-    p.DiscountValue AS Discount,
-    (p.PaymentSubtotal + (p.PaymentSubtotal * p.TaxRate / 100) - p.DiscountValue) AS TotalToPay
-FROM Projects p
-JOIN Clients c ON p.ClientID = c.ClientID;
-
--- View to get all details for Invoices (Service Type, Service Description, Service Date, Service Cost)
-DROP VIEW IF EXISTS InvoiceServiceDetails;
-CREATE VIEW InvoiceServiceDetails AS
-SELECT
-    s.ProjectID AS ProjectNumber,
-    p.ProjectName AS ProjectName,
-    s.ServiceType,
-    s.ShortDescription AS ServiceDescription,
-    s.ServiceDate,
-    s.ServiceCost,
-    s.ServiceStatus
-FROM Services s, Projects p
-WHERE s.ProjectID = p.ProjectID;
-
--- ############################################################################################################
-
--- Step 5: Queries
+-- Step 4: Queries
 --         Make a list of 5 business questions that the CEO of the fictitious company may be interested to 
 --         know and then, write or generate/tune queries for those 5 business questions. 
 --         NOTE: From the 5queries, at least 3 of them must use joins and grouping.
@@ -766,5 +728,45 @@ JOIN Projects p ON pc.ProjectID = p.ProjectID
 WHERE p.Status = 'In Progress'
 GROUP BY d.DepartmentName
 ORDER BY TotalProjectsInProgress DESC;
+
+-- ############################################################################################################
+
+-- Step 5: Create Views
+
+-- View to get all information of head and totals for Invoices(Invoice Number, Project Number, Project Date , Client Information, Subtotal, Tax, Discount, Total Paid, Total Due)
+DROP VIEW IF EXISTS InvoiceHeadTotals;
+CREATE VIEW InvoiceHeadTotals AS
+SELECT
+    p.ProjectID AS InvoiceNumber,
+    p.ProjectID AS ProjectNumber,
+    p.ProjectName AS ProjectName,
+    p.EndDate AS ProjectDate,
+    c.CompanyName AS ClientCompany,
+    c.ContactName AS ClientContact,
+    c.Email AS ClientEmail,
+    c.Phone AS ClientPhone,
+    c.Address AS ClientAddress,
+    p.PaymentSubtotal AS Subtotal,
+    p.TaxRate AS TaxRate,
+    (p.PaymentSubtotal * p.TaxRate / 100) AS ValueAddedTax,
+    p.DiscountValue AS Discount,
+    (p.PaymentSubtotal + (p.PaymentSubtotal * p.TaxRate / 100) - p.DiscountValue) AS TotalToPay
+FROM Projects p
+JOIN Clients c ON p.ClientID = c.ClientID;
+
+-- View to get all details for Invoices (Service Type, Service Description, Service Date, Service Cost)
+DROP VIEW IF EXISTS InvoiceServiceDetails;
+CREATE VIEW InvoiceServiceDetails AS
+SELECT
+    s.ProjectID AS ProjectNumber,
+    p.ProjectName AS ProjectName,
+    s.ServiceType,
+    s.ShortDescription AS ServiceDescription,
+    s.ServiceDate,
+    s.ServiceCost,
+    s.ServiceStatus
+FROM Services s, Projects p
+WHERE s.ProjectID = p.ProjectID;
+
 
 -- ############################################################################################################

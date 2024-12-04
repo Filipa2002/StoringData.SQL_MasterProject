@@ -130,16 +130,16 @@ def generate_invoice_pdf(invoice_number, output_filename):
     elements.append(Spacer(1, 20))
 
     # Add services table
-    service_data = [["DESCRIPTION", "UNIT COST", "QTY", "AMOUNT"]]
+    service_data = [["DESCRIPTION OF THE SERVICES", "UNIT COST", "QTY", "AMOUNT"]]
     for service in invoice_services:
         service_data.append([
             Paragraph(service['ServiceDescription'], normal_style),
-            f"€{service['ServiceCost']:.2f}",
+            f"€{service['ServiceCost']:,.2f}".replace(",", " "),
             "1",
-            f"€{service['ServiceCost']:.2f}"
+            f"€{service['ServiceCost']:,.2f}".replace(",", " ")
         ])
 
-    service_table = Table(service_data, colWidths=[3.25*inch, 1.25*inch, 1*inch, 1*inch])
+    service_table = Table(service_data, colWidths=[3.6*inch, 1.2*inch, 0.5*inch, 1.2*inch])
     service_table.setStyle(TableStyle([
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ('FONTNAME', (0, 0), (-1, 0), 'Calibri-Bold'),
@@ -155,10 +155,10 @@ def generate_invoice_pdf(invoice_number, output_filename):
 
     # Add invoice totals
     totals_data = [
-        ["","", "SUBTOTAL", f"€{invoice_head['Subtotal']:.2f}"],
-        ["\n\nINVOICE TOTAL","", "DISCOUNT", f"€{invoice_head['Discount']:.2f}"],
-        [f"€ {invoice_head['TotalToPay']:.2f}","", f"TAX ({invoice_head['TaxRate']}%):", f"€{invoice_head['ValueAddedTax']:.2f}"],
-        ["","", "TOTAL", f"€{invoice_head['TotalToPay']:.2f}"]
+        ["","", "SUBTOTAL", f"€{invoice_head['Subtotal']:,.2f}".replace(",", " ")],
+        ["\n\nINVOICE TOTAL","", "DISCOUNT", f"€{invoice_head['Discount']:,.2f}".replace(",", " ")],
+        [f"€ {invoice_head['TotalToPay']:,.2f}".replace(",", " "),"", f"TAX ({invoice_head['TaxRate']}%)", f"€{invoice_head['ValueAddedTax']:,.2f}".replace(",", " ")],
+        ["","", "TOTAL", f"€{invoice_head['TotalToPay']:,.2f}".replace(",", " ")]
     ]
     totals_table = Table(totals_data, colWidths=[2.5*inch, 2*inch, 1*inch, 1*inch], rowHeights=[0.2*inch, 0.2*inch, 0.2*inch, 0.2*inch])
     totals_table.setStyle(TableStyle([
@@ -168,10 +168,9 @@ def generate_invoice_pdf(invoice_number, output_filename):
         ('FONTNAME', (2, 1), (2, 1), 'Calibri-Bold'),  # Bold font for "DISCOUNT"
         ('FONTNAME', (2, 2), (2, 2), 'Calibri-Bold'),  # Bold font for "TAX"
         ('FONTNAME', (2, 3), (2, 3), 'Calibri-Bold'),  # Bold font for "TOTAL"
-        # Regular font for last column + 0x3 cell
-        ('FONTNAME', (3, 0), (3, 3), 'Calibri'),    # Bold font for the last column
+        ('FONTNAME', (3, 0), (3, 3), 'Calibri'),       # Bold font for the last column
         ('FONTSIZE', (0, 0), (-1, -1), 10),            # Font size
-        ('ALIGN', (2, 0), (-1, -1), 'RIGHT'),         # Align right for the numeric columns
+        ('ALIGN', (2, 0), (-1, -1), 'RIGHT'),          # Align right for the numeric columns
         ('TOPPADDING', (0, 0), (-1, -1), 6),           # Top Padding
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),        # Bottom Padding
     ]))
@@ -189,6 +188,9 @@ def generate_invoice_pdf(invoice_number, output_filename):
     
     # Build the PDF
     doc.build(elements)
+    
+    # Print success message
+    print(f"Invoice PDF generated successfully: {'Invoice_'+id_invoice+'.pdf'}")
 
 
 # Input invoice number and output filename
