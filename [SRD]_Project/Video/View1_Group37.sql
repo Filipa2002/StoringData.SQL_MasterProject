@@ -1,6 +1,7 @@
 -- Step 5: Create Views
 
--- View to get all information of head and totals for Invoices(Invoice Number, Project Number, Project Date , Client Information, Subtotal, Tax, Discount, Total Paid, Total Due)
+-- View to get all information of head and totals for Invoices(Invoice Number, Project Number, Project Date , Client Information, Subtotal, 
+-- 															   Tax, Discount, Total Paid, Total Due)
 CREATE VIEW InvoiceHeadTotals AS
 SELECT
     p.ProjectID AS InvoiceNumber,
