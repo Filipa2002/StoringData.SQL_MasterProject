@@ -777,21 +777,6 @@ WHERE e.department_id = d.department_id AND
 
 /* ======================================================================================================== */
 /* ------------------------------------------- LAB 6: 09/12/2024 -------------------------------------------
-  ##### Query Optimization Exercises – Part 1
-    Load and run the 'create_flropt_db' script from Moodle:
-      1. From the flights table retrieve the flight where the flight_number_id is '146225'. Look at the query
-      stats using the EXPLAIN operator, also can you see the query’s Execution Plan?
-      2. From the flight_numbers table select the flight with flight_number_id equal to 127. Look at the query
-      stats (you can use the EXPLAIN operator).
-      3. From the flight_numbers table select the flight with flight_number equal to ‘DL9411’. Look at the query
-      stats (you can use the EXPLAIN operator).
-      4. Can you detect any difference in terms of query stats from the two previous questions?
-      5. What are the top five countries that received the most flights?
-      6. What are the top five airline company names with the highest number of cancelled flights?
-    
-    Load and run the 'flropt_fkeys' script from Moodle:
-      7. Re-run the queries you’ve built in questions 1, 4 and 5. Can you detect any differences?
-
   ##### Trigger Exercises – LAB 6
     Implement logging for changes in table "employees" using triggers:
       1. Create a table called "log" with columns:
@@ -827,7 +812,326 @@ WHERE e.department_id = d.department_id AND
     query from the previous point.
       8. Enhance the triggers from questions 2 and 3 to perform on the status table.
       9. Modify the "employee" table and observe the changes in the "status" table.
+
+
+  ##### Query Optimization Exercises – Part 1
+    Load and run the 'create_flropt_db' script from Moodle:
+      1. From the flights table retrieve the flight where the flight_number_id is '146225'. Look at the query
+      stats using the EXPLAIN operator, also can you see the query’s Execution Plan?
+      2. From the flight_numbers table select the flight with flight_number_id equal to 127. Look at the query
+      stats (you can use the EXPLAIN operator).
+      3. From the flight_numbers table select the flight with flight_number equal to ‘DL9411’. Look at the query
+      stats (you can use the EXPLAIN operator).
+      4. Can you detect any difference in terms of query stats from the two previous questions?
+      5. What are the top five countries that received the most flights?
+      6. What are the top five airline company names with the highest number of cancelled flights?
+    
+    Load and run the 'flropt_fkeys' script from Moodle:
+      7. Re-run the queries you’ve built in questions 1, 4 and 5. Can you detect any differences?
+*/
+
+-- A. Implement logging for changes in table "employees" using triggers: 
+--    1. Create table "log" with columns: ID (PK, INTEGER, AUTO_INCREMENT),
+--                                        TS (DATETIME), USR(VARCHAR(63)), EV(VARCHAR(15)),MSG(VARCHAR(255))
+CREATE TABLE log (
+  LOG_ID INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  DT DATETIME NOT NULL,
+  USR VARCHAR(63),
+  EV VARCHAR(15),
+  MSG VARCHAR(255)
+);
+
+--    2. Create trigger that add to the " log" table current time (use function NOW()), the current user
+--        (USER()), the text "add" and the employee full name when new employee is added
+DELIMITER //
+
+CREATE TRIGGER log_after_insert
+AFTER INSERT ON employee
+FOR EACH ROW
+BEGIN
+    INSERT INTO log (TS, USR, EV, MSG)
+    VALUES (NOW(), USER(), 'add', CONCAT(NEW.first_name, ' ', NEW.last_name));
+END;
+
+//
+
+DELIMITER ;
+
+--   3 - Same exercise, but when the "employee" table has an updated row (change the text to "update") 
+DELIMITER $$
+
+CREATE TRIGGER emp_au_log
+AFTER UPDATE
+ON employee
+FOR EACH ROW
+BEGIN
+    INSERT log (TS,USR,EV,MSG) VALUES
+    (NOW(),USER(),"update",CONCAT(NEW.FIRST_NAME,' ',NEW.LAST_NAME));
+END $$
+
+DELIMITER ;
+
+--   4. Same exercise, but when some employee is deleted (change the text to "delete")
+DELIMITER $$
+
+CREATE TRIGGER emp_bd_log
+BEFORE DELETE
+ON employee
+FOR EACH ROW
+BEGIN
+    INSERT log (TS,USR,EV,MSG) VALUES
+    (NOW(),USER(),"delete",CONCAT(OLD.FIRST_NAME,' ',OLD.LAST_NAME));
+END $$
+
+DELIMITER ;
+
+/* Query 5 - Modify, add, and delete some rows in the "employee" table and observe the content of the "log" table. */
+INSERT INTO employee (first_name, last_name, email, phone_number, hire_date, job_id, salary, commission_pct, manager_id, department_id) VALUES 
+('John', 'Doe', 'john.doe@email.com', '123456789', '2024-12-09', 'IT_PROG', 5000.00, 0.10, 1, 1);
+
+UPDATE employee SET salary = 6000.00 WHERE employee_id = 1;
+
+DELETE FROM employee WHERE employee_id = 1;
+
+-- B. Implement table with current salary property over the whole company (min, max, average, count, last updated), 
+--     updated by triggers every time when employees are added, removed or changed;
+
+--    1. Create table status with columns: PK (Primary key, Integer, default 0), 
+--                                         SALARY_MIN, SALARY_MAX, SALARY_AVG (FLOAT), 
+--                                         EMP_COUNT (INTEGER UNSIGNED, DEFAULT 0, NOT NULL), LAST_UPD (DATATIME)
+CREATE TABLE status (
+  PK INTEGER UNSIGNED DEFAULT 0 PRIMARY KEY,
+  SALARY_AVG FLOAT,
+  SALARY_MIN FLOAT,
+  SALARY_MAX FLOAT,
+  EMP_COUNT INTEGER UNSIGNED DEFAULT 0 NOT NULL,
+  LAST_UPD DATETIME
+);
+
+--    2. Create query that replaces the single row in "status" with actual values. Use REPLACE and SELECT syntax:
+REPLACE status (PK,SALARY_AVG,SALARY_MIN,SALARY_MAX,EMP_COUNT,LAST_UPD)
+SELECT 0,avg(SALARY),max(SALARY),min(SALARY),COUNT(1),NOW() FROM employee;
+
+--    3. Create triggers in employee table after delete that update the content of table "status" using the
+--       query from the previous point
+
+DELIMITER $$
+
+CREATE TRIGGER emp_ad_status
+AFTER DELETE
+ON employee
+FOR EACH ROW
+BEGIN
+    REPLACE status (PK,SALARY_AVG,SALARY_MIN,SALARY_MAX,EMP_COUNT,LAST_UPD)
+    SELECT 0,avg(SALARY),max(SALARY),min(SALARY),COUNT(1),NOW() FROM employee;
+END $$
+
+DELIMITER ;
+
+
+--    4. Enhance the triggers from points A.2. and A.3 to perform the status table
+DROP TRIGGER emp_ai_log;
+
+DELIMITER $$
+CREATE TRIGGER emp_ai_log
+AFTER INSERT
+ON employee
+FOR EACH ROW
+BEGIN
+    INSERT log (TS,USR,EV,MSG)
+    VALUES (NOW(),USER(),"add",CONCAT(NEW.FIRST_NAME,' ',NEW.LAST_NAME));
+    REPLACE status (PK,SALARY_AVG,SALARY_MIN,SALARY_MAX,EMP_COUNT,LAST_UPD)
+    SELECT 0,avg(SALARY),max(SALARY),min(SALARY),COUNT(1),NOW() FROM employee;
+END $$
+
+DELIMITER ;
+
+DROP TRIGGER emp_au_log;
+DELIMITER $$
+CREATE TRIGGER emp_au_log
+AFTER UPDATE
+ON employee
+FOR EACH ROW
+BEGIN
+    INSERT log (TS,USR,EV,MSG) VALUES
+    (NOW(),USER(),"update",CONCAT(NEW.FIRST_NAME,' ',NEW.LAST_NAME));
+    REPLACE status (PK,SALARY_AVG,SALARY_MIN,SALARY_MAX,EMP_COUNT,LAST_UPD)
+    SELECT 0, AVG(SALARY), MAX(SALARY), MIN(SALARY), COUNT(1),NOW() FROM employee;
+END $$
+
+DELIMITER ;
+
+
+--    5. Modify the "employee" table and observe that changes in "status" table
+INSERT INTO employee (first_name, last_name, email, phone_number, hire_date, job_id, salary, commission_pct, manager_id, department_id) VALUES 
+('Jane', 'Doe', 'jane.doe@aa.com', '123456789', '2024-12-09', 'IT_PROG', 5000.00, 0.10, 1, 1);
+
+UPDATE employee SET salary = 6000.00 WHERE employee_id = 1;
+
+DELETE FROM employee WHERE employee_id = 1;
+
+
+/* ======================================================================================================== */
+/* Query Optimization Exercises – Part 1 
+    Load and run the 'create_flropt_db' script from Moodle: 
+      - airlines(AIRLINE_CODE(PK), AIRLINE_IATA, AIRLINE_NAME)
+      - airplanes(AIRPLANE_REG(PK), AIRPLANE_MODEL, AIRPLANE_MODEL_CODE, AIRLINE_CODE(FK → airlines.AIRLINE_CODE), LIVERY)
+      - airports(CODE(PK), CODE_ICAO, NAME, CITY, COUNTRY_CODE(FK → countries.COUNTRY_CODE), LATITUDE, LONGITUDE, ELEVATION)
+      - countries(COUNTRY_CODE(PK), COUNTRY)
+      - flight_number_codeshare(FLIGHT_ROW_ID(PK, FK → flights.ROW_ID), FLIGHT_NUMBER_ID(PK, FK → flight_numbers.FLIGHT_NUMBER_ID))
+      - flight_numbers(FLIGHT_NUMBER_ID(PK), FLIGHT_NUMBER)
+      - flights(ROW_ID(PK), AIRPLANE_REG(FK → airplanes.AIRPLANE_REG), AIRLINE_CODE(FK → airlines.AIRLINE_CODE), FLIGHT_NUMBER_ID(FK → flight_numbers.FLIGHT_NUMBER_ID),
+                AIRPORT_ORIG(FK → airports.CODE), AIRPORT_ORIG_SCHEDULE_TIME, AIRPORT_ORIG_STATUS_ID(FK → statuses.STATUS_ID), AIRPORT_ORIG_STATUS_TIME,
+                AIRPORT_DEST(FK → airports.CODE), AIRPORT_DEST_SCHEDULE_TIME, AIRPORT_DEST_STATUS_ID(FK → statuses.STATUS_ID), AIRPORT_DEST_STATUS_TIME)
+      - statuses(STATUS_ID(PK), STATUS)
 */
 
 /* Query 1 - From the flights table retrieve the flight where the flight_number_id is '146225'. 
              Look at the query stats using the EXPLAIN operator, also can you see the query’s Execution Plan? */
+
+-- refresh statistics
+analyze table flights, airlines,
+airplanes,airports,countries,flight_number_codeshare,flight_numbers,statuses;
+-- show occupied space
+SELECT table_schema "DB Name", '*' as "table_name",
+        SUM(data_length) AS "data", SUM(index_length) AS "index",
+        ROUND((SUM(data_length) + SUM(index_length)) / 1024 / 1024, 1) "Size in MB"
+FROM information_schema.tables
+WHERE table_schema='flropt'
+UNION
+SELECT table_schema, table_name, data_length, index_length,
+      ROUND((data_length + index_length) / 1024 / 1024, 1)
+FROM information_schema.tables
+WHERE table_schema='flropt';
+
+-- show the query plan
+EXPLAIN  -- ANALYZE 
+SELECT * 
+FROM flights 
+WHERE flight_number_id = '146225';      -- Utilizando KEYS ou INDEXEs corre + rápido
+
+/* Query 2 - From the flight_numbers table select the flight with flight_number_id equal to 127. 
+             Look at the query stats (you can use the EXPLAIN operator). */ 
+
+EXPLAIN  -- ANALYZE
+SELECT * 
+FROM flight_numbers
+WHERE flight_number_id=127;
+
+/* Query 3 - From the flight_numbers table select the flight with flight_number equal to ‘DL9411’. 
+             Look at the query stats (you can use the EXPLAIN operator). */
+
+EXPLAIN  -- ANALYZE
+SELECT * 
+FROM flight_numbers
+WHERE flight_number='DL9411';
+
+/* Query 4 - Can you detect any difference in terms of query stats from the two previous questions? */
+-- Answer: The query stats will be different because the first query uses the primary key index, while the second query uses the flight_number index.
+
+/* Query 5 - What are the top five countries that received the most flights? */
+SELECT c.country, COUNT(f.flight_number_id) AS "Number of Flights"
+FROM flights f, airports a, countries c
+WHERE f.airport_dest = a.code AND 
+      a.country_code = c.country_code
+GROUP BY c.country
+ORDER BY COUNT(f.flight_number_id) DESC
+LIMIT 5;
+
+/* Query 6 - What are the top five airline company names with the highest number of cancelled flights? */
+SELECT a.airline_name, COUNT(1) AS "Number of Cancelled Flights"
+FROM flights f, airlines a, statuses s
+WHERE f.airline_code = a.airline_code AND 
+      f.airport_orig_status_id = s.status_id AND 
+      status = 'canceled'
+      -- AND flights.airport_orig_status_id=10
+GROUP BY f.airline_code
+ORDER BY "Number of Cancelled Flights" DESC
+LIMIT 5;
+
+
+/* Load and run the 'flropt_fkeys' script from Moodle: */
+/* Query 7 - Re-run the queries you’ve built in questions 1, 4 and 5. Can you detect any differences? */
+-- Answer: The query stats will be different because the foreign key constraints will be enforced, which may affect the query execution plan.
+--         Para ver isto usamos o EXPLAIN
+
+
+/* ======================================================================================================== */
+
+
+/* ------------------------------------------- LAB 7: 16/12/2024 -------------------------------------------
+  ##### Query Optimization Exercises – Part 2
+    Be sure that the "create_flropt_db" and "flropt_fkeys" scripts from Moodle have been loaded and run.
+      You are hired to optimize the "flropt" database so that it can consistently and in a brief manner output
+      a set of information’s for the normal functioning of any given airport. For each required information
+      write the required queries, benchmark them, and create relevant indexes to speed up the process.
+
+      1. At each moment, any passenger in the airport needs to know all flights that are leaving the
+          airport in the next 3 hours. Produce a query to feed this invoice with the given requisites:
+              a. You are doing it for the Lisbon airport.
+              b. For testing’s sake, assume that the current timestamp is 01-01-2021 at 11:00 am.
+              (Day, Hour, Flight Number, Destination Country, Air Company Name, Status)
+
+      2. At any moment, airlines need to know which of their planes are on the air or are grounded
+        due to cancellations or other factors. Produce a query to feed this invoice with the given
+        requisites:
+              a. You are doing it for the airline TAP.
+              b. For testing’s sake, assume that the current timestamp is 12-01-2021 at 10:00 am.
+              (Day, Hour, Flight Number, Airplane Model, Origin Airport, Origin Time, Destination Airport, Destination Time, Status)
+
+      3. Even though flight cancelations depend on a wide variety of variables, knowing the
+        consistency of airports can have its relevancy. Produce a query that outputs the probability of
+        cancelation (number of cancelled flights/number of flights) for each airport for the previous week.
+            a. For testing’s sake, assume that the current timestamp is 20-01-2021 at 10:00 am.
+            (Last Week Date, Current Date, Airport Number, Number of Flights, Number of Cancelations, Cancelation Probability)
+
+*/
+
+/* Query 1 - At each moment, any passenger in the airport needs to know all flights that are leaving the airport in the next 3 hours. */
+SELECT a.airport_orig_schedule_time, 
+       f.flight_number,
+       c.country_name AS "Destination Country",
+       a.airline_name AS "Air Company Name",
+       s.status AS "Status"
+FROM flight_numbers fn, flights f, airports a, countries c, airlines al, statuses s
+WHERE fn.flight_number_id = f.flight_number_id AND
+      f.departure_airport_id = a.airport_id AND 
+      a.country_id = c.country_id AND 
+      f.airline_id = al.airline_id AND 
+      f.status_id = s.status_id AND 
+      a.city = 'lisbon' AND 
+      f.departure_time BETWEEN '2021-01-01 11:00' AND '2022-01-01 13:59:59.9'
+ORDER BY airport_orig_schedule_time;
+
+/* Query 2 - At any moment, airlines need to know which of their planes are on the air or are grounded due to cancellations or other factors. */
+SELECT DATE_FORMAT(f.departure_time, '%Y-%m-%d') AS "Day",
+       DATE_FORMAT(f.departure_time, '%H:%i') AS "Hour",
+       f.flight_number,
+       ap.airplane_model AS "Airplane Model",
+       ao.name AS "Origin Airport",
+       DATE_FORMAT(f.departure_time, '%H:%i') AS "Origin Time",
+       ad.name AS "Destination Airport",
+       DATE_FORMAT(f.arrival_time, '%H:%i') AS "Destination Time",
+       s.status AS "Status"
+FROM flights f, flight_numbers fn, airplanes ap, airports ao, airports ad, statuses s
+WHERE f.flight_number_id = fn.flight_number_id AND
+      f.airplane_id = ap.airplane_id AND 
+      f.departure_airport_id = ao.airport_id AND 
+      f.arrival_airport_id = ad.airport_id AND 
+      f.status_id = s.status_id AND 
+      airport_orig_status_time<='2022-01-12 10:00' and
+      airport_dest_status_time>='2022-01-12 10:00'
+      -- AND airlines.airline_name like 'TAP%'
+
+/* Query 3 - Knowing the consistency of airports can have its relevancy. Produce a query that outputs the probability of cancelation for each airport for the previous week. */
+SELECT MIN(airport_orig_schedule_time) AS "Last Week Date",
+       MAX(airport_orig_schedule_time) AS "Current Date",
+       a.name AS "Airport", 
+       COUNT(f.flight_id) AS "Number of Flights",
+       ROUND((COUNT(CASE WHEN s.status = 'departed' THEN null ELSE 1 END)/COUNT(f.flight_id))*100) AS "Cancelation Probability"
+      -- round((sum(not statuses.status='departed')/count(1))*100) as per_canc
+FROM flights f, airports a, statuses s
+WHERE f.departure_airport_id = a.airport_id AND 
+      f.status_id = s.status_id AND 
+      a.airport_orig_schedule_time BETWEEN DATE_SUB('2022-01-20 10:00', INTERVAL 1 WEEK) AND '2022-01-20 10:00'
+GROUP BY f.airport_orig;
