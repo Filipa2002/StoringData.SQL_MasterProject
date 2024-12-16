@@ -1088,50 +1088,64 @@ LIMIT 5;
 */
 
 /* Query 1 - At each moment, any passenger in the airport needs to know all flights that are leaving the airport in the next 3 hours. */
-SELECT a.airport_orig_schedule_time, 
-       f.flight_number,
-       c.country_name AS "Destination Country",
-       a.airline_name AS "Air Company Name",
-       s.status AS "Status"
-FROM flight_numbers fn, flights f, airports a, countries c, airlines al, statuses s
-WHERE fn.flight_number_id = f.flight_number_id AND
-      f.departure_airport_id = a.airport_id AND 
-      a.country_id = c.country_id AND 
-      f.airline_id = al.airline_id AND 
-      f.status_id = s.status_id AND 
-      a.city = 'lisbon' AND 
-      f.departure_time BETWEEN '2021-01-01 11:00' AND '2022-01-01 13:59:59.9'
+-- EXPLAIN
+SELECT airport_orig_schedule_time, flight_number, countries.country as dest_country, airlines.airline_name, statuses.status 
+FROM flights
+JOIN flight_numbers ON flights.flight_number_id=flight_numbers.flight_number_id
+JOIN airports ON flights.airport_dest=airports.code
+JOIN countries ON airports.country_code=countries.country_code
+JOIN airlines ON flights.airline_code=airlines.airline_code
+JOIN statuses ON flights.airport_orig_status_id=statuses.status_id
+JOIN airports airports_orig ON flights.airport_orig=airports_orig.code
+WHERE airports_orig.city='lisbon'
+AND airport_orig_schedule_time BETWEEN '2024-08-01 11:00' AND '2024-08-01 13:59:59.9'
 ORDER BY airport_orig_schedule_time;
 
 /* Query 2 - At any moment, airlines need to know which of their planes are on the air or are grounded due to cancellations or other factors. */
-SELECT DATE_FORMAT(f.departure_time, '%Y-%m-%d') AS "Day",
-       DATE_FORMAT(f.departure_time, '%H:%i') AS "Hour",
-       f.flight_number,
-       ap.airplane_model AS "Airplane Model",
-       ao.name AS "Origin Airport",
-       DATE_FORMAT(f.departure_time, '%H:%i') AS "Origin Time",
-       ad.name AS "Destination Airport",
-       DATE_FORMAT(f.arrival_time, '%H:%i') AS "Destination Time",
-       s.status AS "Status"
-FROM flights f, flight_numbers fn, airplanes ap, airports ao, airports ad, statuses s
-WHERE f.flight_number_id = fn.flight_number_id AND
-      f.airplane_id = ap.airplane_id AND 
-      f.departure_airport_id = ao.airport_id AND 
-      f.arrival_airport_id = ad.airport_id AND 
-      f.status_id = s.status_id AND 
-      airport_orig_status_time<='2022-01-12 10:00' and
-      airport_dest_status_time>='2022-01-12 10:00'
-      -- AND airlines.airline_name like 'TAP%'
+-- EXPLAIN
+SELECT FLIGHT_NUMBER, AIRPLANE_MODEL,
+  AIRPORTS_ORIG.NAME, AIRPORT_ORIG_SCHEDULE_TIME,
+  AIRPORTS_DEST.NAME, AIRPORT_DEST_SCHEDULE_TIME
+FROM FLIGHTS
+JOIN FLIGHT_NUMBERS ON FLIGHTS.FLIGHT_NUMBER_ID = FLIGHT_NUMBERS.FLIGHT_NUMBER_ID
+JOIN AIRPLANES ON FLIGHTS.AIRPLANE_REG = AIRPLANES.AIRPLANE_REG
+JOIN AIRLINES ON AIRPLANES.AIRLINE_CODE = AIRLINES.AIRLINE_CODE
+JOIN AIRPORTS AIRPORTS_ORIG ON FLIGHTS.AIRPORT_ORIG = AIRPORTS_ORIG.CODE
+JOIN AIRPORTS AIRPORTS_DEST ON FLIGHTS.AIRPORT_DEST = AIRPORTS_DEST.CODE
+WHERE AIRPORT_ORIG_STATUS_TIME <= '2024-01-12 10:00' AND
+      AIRPORT_DEST_STATUS_TIME >= '2024-01-12 10:00' AND
+      AIRLINES.AIRLINE_NAME LIKE 'TAP%';
 
-/* Query 3 - Knowing the consistency of airports can have its relevancy. Produce a query that outputs the probability of cancelation for each airport for the previous week. */
-SELECT MIN(airport_orig_schedule_time) AS "Last Week Date",
-       MAX(airport_orig_schedule_time) AS "Current Date",
-       a.name AS "Airport", 
-       COUNT(f.flight_id) AS "Number of Flights",
-       ROUND((COUNT(CASE WHEN s.status = 'departed' THEN null ELSE 1 END)/COUNT(f.flight_id))*100) AS "Cancelation Probability"
-      -- round((sum(not statuses.status='departed')/count(1))*100) as per_canc
-FROM flights f, airports a, statuses s
-WHERE f.departure_airport_id = a.airport_id AND 
-      f.status_id = s.status_id AND 
-      a.airport_orig_schedule_time BETWEEN DATE_SUB('2022-01-20 10:00', INTERVAL 1 WEEK) AND '2022-01-20 10:00'
-GROUP BY f.airport_orig;
+-- EXPLAIN
+SELECT FLIGHT_NUMBER, AIRPLANE_MODEL,
+  AIRPORTS_ORIG.NAME, AIRPORT_ORIG_SCHEDULE_TIME,
+  AIRPORTS_DEST.NAME, AIRPORT_DEST_SCHEDULE_TIME
+FROM FLIGHTS
+JOIN FLIGHT_NUMBERS ON FLIGHTS.FLIGHT_NUMBER_ID = FLIGHT_NUMBERS.FLIGHT_NUMBER_ID
+JOIN AIRPLANES ON FLIGHTS.AIRPLANE_REG = AIRPLANES.AIRPLANE_REG
+JOIN AIRPORTS AIRPORTS_ORIG ON FLIGHTS.AIRPORT_ORIG = AIRPORTS_ORIG.CODE
+JOIN AIRPORTS AIRPORTS_DEST ON FLIGHTS.AIRPORT_DEST = AIRPORTS_DEST.CODE
+WHERE AIRPORT_ORIG_STATUS_TIME <= '2024-01-12 10:00' AND
+      AIRPORT_DEST_STATUS_TIME >= '2024-01-12 10:00' AND
+      FLIGHTS.AIRLINE_CODE = (SELECT AIRLINE_CODE FROM AIRLINES WHERE AIRLINE_NAME LIKE 'TAP%');
+
+/* QUERY 3 - KNOWING THE CONSISTENCY OF AIRPORTS CAN HAVE ITS RELEVANCY. PRODUCE A QUERY THAT OUTPUTS THE PROBABILITY OF CANCELATION FOR EACH AIRPORT FOR THE PREVIOUS WEEK. */
+SELECT MIN(airport_orig_schedule_time) AS min_time,
+       MAX(airport_orig_schedule_time) AS max_time,
+       airports.name,
+       COUNT(1) AS num_flights,
+       ROUND((COUNT(CASE WHEN statuses.status = 'departed' THEN NULL ELSE 1 END) / COUNT(1)) * 100) AS per_canc
+-- ROUND((SUM(NOT statuses.status = 'departed') / COUNT(1)) * 100) AS per_canc
+FROM flights
+JOIN statuses ON flights.airport_orig_status_id = statuses.status_id
+JOIN airports ON flights.airport_orig = airports.code
+WHERE airport_orig_schedule_time BETWEEN DATE_SUB('2024-01-20 10:00', INTERVAL 1 WEEK) AND '2024-01-20 10:00'
+GROUP BY flights.airport_orig;
+
+/* OPTIMIZE */
+CREATE INDEX flights_airport_orig_schedule_time_IDX USING BTREE ON flropt.flights (airport_orig_schedule_time);
+CREATE INDEX flights_airport_orig_status_time_IDX USING BTREE ON flropt.flights (airport_orig_status_time);
+CREATE INDEX flights_airport_dest_status_time_IDX USING BTREE ON flropt.flights (airport_dest_status_time);
+
+/* TRY WITH THIS ALSO */
+CREATE INDEX flights_airport_orig_status_time_IDX USING BTREE ON flropt.flights (airport_orig_status_time, airport_dest_status_time);
