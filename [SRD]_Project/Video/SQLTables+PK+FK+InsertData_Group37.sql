@@ -6,110 +6,117 @@ USE NOVAloitteDB;
 
 -- Locations Table 
 CREATE TABLE Locations (
-    LocationID INT PRIMARY KEY AUTO_INCREMENT,
-    City VARCHAR(100),
-    Country VARCHAR(100)
+    LocationID TINYINT PRIMARY KEY AUTO_INCREMENT,         -- Use TINYINT for small range of values (Optimized for performance)
+    City VARCHAR(100),                                     -- City name can be up to 100 characters
+    Country VARCHAR(100)                                   -- Country name can be up to 100 characters
 );
 
 -- Industries Table
 CREATE TABLE Industries (
-    IndustryID INT PRIMARY KEY AUTO_INCREMENT,
-    IndustryName VARCHAR(100)
+    IndustryID TINYINT PRIMARY KEY AUTO_INCREMENT,         -- Use TINYINT for small range of values (Optimized for performance)
+    IndustryName VARCHAR(100)                              -- Industry name can be up to 100 characters
 );
 
 -- Clients Table
 CREATE TABLE Clients (
-    ClientID INT PRIMARY KEY AUTO_INCREMENT,
-    CompanyName VARCHAR(255),
-    ContactName VARCHAR(255),
-    Email VARCHAR(255),
-    Phone VARCHAR(20),
-    Address VARCHAR(255),
-    IndustryID INT,    
-    ClientSince DATE,
-    LocationID INT,
-    ApplyDiscount BOOLEAN DEFAULT 0,
+    ClientID INT PRIMARY KEY AUTO_INCREMENT,                -- Use INT for larger range of values (We may have many clients)
+    CompanyName VARCHAR(255),                               -- Company name can be up to 255 characters
+    ContactName VARCHAR(255),                               -- Contact person name can be up to 255 characters
+    Email VARCHAR(255),                                     -- Email can be up to 255 characters
+    Phone VARCHAR(20),                                      -- Phone number can be up to 20 characters
+    Address VARCHAR(255),                                   -- Address can be up to 255 characters
+    IndustryID TINYINT NOT NULL,                            -- IndustryID as Foreign Key (Mandatory)   
+    ClientSince DATE,                                       -- Date when client started working with us
+    LocationID TINYINT NOT NULL,                            -- LocationID as Foreign Key (Mandatory)
+    ApplyDiscount BOOLEAN DEFAULT 0,                        -- Apply discount by default is false (0)
     -- Foreign Key Constraints 
-    CONSTRAINT FK_ClientIndustry FOREIGN KEY (IndustryID) 
+    CONSTRAINT FK_ClientIndustry FOREIGN KEY (IndustryID)   -- Define Foreign Key Constraint for IndustryID
         REFERENCES Industries(IndustryID) 
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
-    CONSTRAINT FK_ClientLocation FOREIGN KEY (LocationID) 
+    CONSTRAINT FK_ClientLocation FOREIGN KEY (LocationID)   -- Define Foreign Key Constraint for LocationID
         REFERENCES Locations(LocationID)
-        ON DELETE SET NULL
+        ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
 
 -- Projects Table
 CREATE TABLE Projects (
-    ProjectID INT PRIMARY KEY AUTO_INCREMENT,
-    ClientID INT,
-    ProjectName VARCHAR(255),
-    Description TEXT,
-    StartDate DATE,
-    EndDate DATE,
-    Status VARCHAR(50) CHECK (Status IN ('Completed', 'In Progress')),
-    PaymentSubtotal DECIMAL(10, 2),
-    DiscountValue DECIMAL(10, 2) DEFAULT 0,             -- Discount value can be 0 if no discount applied
-	TaxRate DECIMAL(3, 1),                              -- Tax rate in percentage [0.0 - 99.9]
-    CONSTRAINT FK_ProjectClient FOREIGN KEY (ClientID) 
+    ProjectID INT PRIMARY KEY AUTO_INCREMENT,               -- Use INT for larger range of values (We may have many projects)
+    ClientID INT NOT NULL,                                  -- ClientID as Foreign Key (Mandatory)
+    ProjectName VARCHAR(255),                               -- Project name can be up to 255 characters
+    Description TEXT,                                       -- Description can be long text
+    StartDate DATE,                                         -- Start date of the project
+    EndDate DATE,                                           -- End date of the project
+    Status VARCHAR(11) CHECK (Status IN ('Completed', 'In Progress')), -- Status can be 'Completed' or 'In Progress'
+    PaymentSubtotal DECIMAL(10, 2),                         -- Payment subtotal for the project with 2 decimal places and up to 10 digits
+    DiscountValue DECIMAL(10, 2) DEFAULT 0,                 -- Discount value can be 0 if no discount applied
+	TaxRate DECIMAL(3, 1),                                  -- Tax rate in percentage [0.0 - 99.9]
+    CONSTRAINT FK_ProjectClient FOREIGN KEY (ClientID)      -- Define Foreign Key Constraint for ClientID
         REFERENCES Clients(ClientID) 
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
-    CHECK (StartDate <= EndDate) -- Ensure StartDate is before or equal to EndDate
+    CHECK (StartDate <= EndDate),                             -- Ensure StartDate is before or equal to EndDate
+    CHECK (PaymentSubtotal >= 0),                            -- Ensure PaymentSubtotal is non-negative
+    CHECK (DiscountValue >= 0),                              -- Ensure DiscountValue is non-negative
+    CHECK (PaymentSubtotal >= DiscountValue),                -- Ensure PaymentSubtotal is greater than or equal to DiscountValue
+    CHECK (TaxRate >= 0 AND TaxRate <= 100)                 -- Ensure TaxRate is between 0 and 100
 );
 
 -- Ratings Table
 CREATE TABLE Ratings (
-    ProjectID INT,
-    ClientID INT,
-    Rating FLOAT(3) CHECK (Rating >= 0 AND Rating <= 5),   -- Restrict the rating to be between 0 and 5
-    Review TEXT DEFAULT NULL,                                   -- Review is optional
-    PRIMARY KEY (ProjectID, ClientID),  -- Composite Primary Key
-    CONSTRAINT FK_RatingProject FOREIGN KEY (ProjectID) 
+    ProjectID INT NOT NULL,                                  -- ProjectID as Foreign Key (Mandatory)
+    ClientID INT NOT NULL,                                   -- ClientID as Foreign Key (Mandatory)
+    Rating DECIMAL(2, 1)                                     -- Rating with 1 decimal places and up to 2 digits (e.g., 4.5)
+        CHECK (Rating >= 0 AND Rating <= 5),                 -- Restrict the rating to be between 0 and 5
+    Review TEXT DEFAULT NULL,                                -- Review is optional and by default is NULL
+    PRIMARY KEY (ProjectID, ClientID),                       -- Composite Primary Key (ProjectID, ClientID)
+    CONSTRAINT FK_RatingProject FOREIGN KEY (ProjectID)      -- Define Foreign Key Constraint for ProjectID
         REFERENCES Projects(ProjectID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
-    CONSTRAINT FK_RatingClient FOREIGN KEY (ClientID)
+    CONSTRAINT FK_RatingClient FOREIGN KEY (ClientID)        -- Define Foreign Key Constraint for ClientID
         REFERENCES Clients(ClientID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 );
 
--- Employees Table
-CREATE TABLE Employees (
-    EmployeeID INT PRIMARY KEY AUTO_INCREMENT,
-    FirstName VARCHAR(100),
-    LastName VARCHAR(100),
-    Position VARCHAR(100),
-    HireDate DATE,
-    Email VARCHAR(255),
-    Phone VARCHAR(20),
-    Salary DECIMAL(10, 2)
-);
-
 -- Departments Table
 CREATE TABLE Departments (
-    DepartmentID INT PRIMARY KEY AUTO_INCREMENT,
-    DepartmentName VARCHAR(100),
-    ManagerID INT,
-    CONSTRAINT FK_DepartmentManager FOREIGN KEY (ManagerID) 
-        REFERENCES Employees(EmployeeID) 
-        ON DELETE SET NULL                         -- Set ManagerID to NULL if Manager is deleted 
-        ON UPDATE CASCADE
+    DepartmentID TINYINT PRIMARY KEY AUTO_INCREMENT,          -- Use TINYINT for small range of values (Optimized for performance)
+    DepartmentName VARCHAR(100),                              -- Department name can be up to 100 characters
+    ManagerID INT NOT NULL                                    -- ManagerID as Foreign Key (Mandatory)
+);
+
+-- Employees Table
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY AUTO_INCREMENT,                -- Use INT for larger range of values (We may have many employees)
+    FirstName VARCHAR(100),                                   -- First name can be up to 100 characters
+    LastName VARCHAR(100),                                    -- Last name can be up to 100 characters
+    Position VARCHAR(100),                                    -- Position can be up to 100 characters
+    HireDate DATE,                                            -- Hire date of the employee
+    Email VARCHAR(255),                                       -- Email can be up to 255 characters
+    Phone VARCHAR(20),                                        -- Phone number can be up to 20 characters
+    Salary DECIMAL(10, 2),                                    -- Salary with 2 decimal places and up to 10 digits
+    DepartmentID TINYINT NOT NULL,                            -- DepartmentID as Foreign Key
+    CONSTRAINT FK_EmployeeDepartment FOREIGN KEY (DepartmentID) -- Define Foreign Key Constraint for DepartmentID
+        REFERENCES Departments(DepartmentID)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CHECK (Salary >= 0)                                       -- Ensure Salary is non-negative
 );
 
 -- ProjectConsultants Table
 CREATE TABLE ProjectConsultants (
-    ProjectID INT,
-    EmployeeID INT,
-    EmployeeRole VARCHAR(100),
-    PRIMARY KEY (ProjectID, EmployeeID),  -- Composite Primary Key
-    CONSTRAINT FK_ConsultantProject FOREIGN KEY (ProjectID) 
+    ProjectID INT NOT NULL,                                   -- ProjectID as Foreign Key (Mandatory)
+    EmployeeID INT NOT NULL,                                  -- EmployeeID as Foreign Key (Mandatory)
+    EmployeeRole VARCHAR(100),                                -- Role of the employee in the project
+    PRIMARY KEY (ProjectID, EmployeeID),                      -- Composite Primary Key
+    CONSTRAINT FK_ConsultantProject FOREIGN KEY (ProjectID)   -- Define Foreign Key Constraint for ProjectID
         REFERENCES Projects(ProjectID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
-    CONSTRAINT FK_ConsultantEmployee FOREIGN KEY (EmployeeID) 
+    CONSTRAINT FK_ConsultantEmployee FOREIGN KEY (EmployeeID)  -- Define Foreign Key Constraint for EmployeeID
         REFERENCES Employees(EmployeeID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
@@ -117,12 +124,12 @@ CREATE TABLE ProjectConsultants (
 
 -- CollectedData Table
 CREATE TABLE CollectedData (
-    DataID INT PRIMARY KEY AUTO_INCREMENT,
-    ProjectID INT,
-    DataType VARCHAR(100),
-    Format VARCHAR(50),
-    CollectionDate DATE,
-    CONSTRAINT FK_DataProject FOREIGN KEY (ProjectID) 
+    DataID INT PRIMARY KEY AUTO_INCREMENT,                     -- Use INT for larger range of values (We may have many data entries)
+    ProjectID INT NOT NULL,                                    -- ProjectID as Foreign Key (Mandatory)
+    DataType VARCHAR(100),                                     -- Type of data collected (e.g., Survey, Metrics, Report)
+    Format VARCHAR(50),                                        -- Format of the data (e.g., CSV, JSON, XML)
+    CollectionDate DATE,                                       -- Date when data was collected
+    CONSTRAINT FK_DataProject FOREIGN KEY (ProjectID)          -- Define Foreign Key Constraint for ProjectID
         REFERENCES Projects(ProjectID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
@@ -130,12 +137,12 @@ CREATE TABLE CollectedData (
 
 -- Reports Table
 CREATE TABLE Reports (
-    ReportID INT PRIMARY KEY AUTO_INCREMENT,
-    ProjectID INT,
-    ReportTitle VARCHAR(255),
-    ReportDate DATE,
-    ReportContent TEXT,
-    CONSTRAINT FK_ReportProject FOREIGN KEY (ProjectID) 
+    ReportID INT PRIMARY KEY AUTO_INCREMENT,                    -- Use INT for larger range of values (We may have many reports)
+    ProjectID INT NOT NULL,                                     -- ProjectID as Foreign Key
+    ReportTitle VARCHAR(255),                                   -- Title of the report
+    ReportDate DATE,                                            -- Date when the report was created
+    ReportContent TEXT,                                         -- Content of the report
+    CONSTRAINT FK_ReportProject FOREIGN KEY (ProjectID)         -- Define Foreign Key Constraint for ProjectID
         REFERENCES Projects(ProjectID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
@@ -143,37 +150,39 @@ CREATE TABLE Reports (
 
 -- Services Table 
 CREATE TABLE Services (
-    ServicesID INT PRIMARY KEY AUTO_INCREMENT,
-    ProjectID INT,
-    ServiceType VARCHAR(255),
-    ShortDescription TEXT,
-    ServiceDate DATE,
-    ServiceCost DECIMAL(15, 2),
-    ServiceStatus VARCHAR(50),
-    CONSTRAINT FK_ServicesProject FOREIGN KEY (ProjectID) 
+    ServicesID INT PRIMARY KEY AUTO_INCREMENT,                  -- Use INT for larger range of values (We may have many services)
+    ProjectID INT NOT NULL,                                     -- ProjectID as Foreign Key (Mandatory)
+    ServiceType VARCHAR(100),                                   -- Type of service provided (e.g., Consulting, Development, Training)
+    ShortDescription VARCHAR(500),                              -- Short description of the service provided (up to 500 characters)
+    ServiceDate DATE,                                           -- Date when the service was provided
+    ServiceCost DECIMAL(10, 2),                                 -- Cost of the service
+    ServiceStatus VARCHAR(11) 
+        CHECK (ServiceStatus IN ('Completed', 'In Progress')),         -- Status of the service can be 'Completed' or 'In Progress'
+    CONSTRAINT FK_ServicesProject FOREIGN KEY (ProjectID)       -- Define Foreign Key Constraint for ProjectID
         REFERENCES Projects(ProjectID)    
         ON DELETE RESTRICT
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    CHECK (ServiceCost >= 0)                                    -- Ensure ServiceCost is non-negative
 );
 
 -- Skills Table
 CREATE TABLE Skills (
-    SkillID INT PRIMARY KEY AUTO_INCREMENT,
-    SkillName VARCHAR(100),
-    SkillLevel VARCHAR(100),
-    CertificationRequired VARCHAR(10)
+    SkillID TINYINT PRIMARY KEY AUTO_INCREMENT,                  -- Use TINYINT for small range of values (Optimized for performance)
+    SkillName VARCHAR(100),                                      -- Skill name can be up to 100 characters
+    SkillLevel VARCHAR(100),                                     -- Skill level (e.g., Beginner, Intermediate, Advanced, Expert)
+    CertificationRequired BOOLEAN DEFAULT 0                      -- Certification required for the skill (Yes - 1, No - 0)
 );
 
 -- EmployeeSkills Table
 CREATE TABLE EmployeeSkills (
-    EmployeeID INT,
-    SkillID INT,
-	PRIMARY KEY (EmployeeID, SkillID),  -- Composite Primary Key
-    CONSTRAINT FK_EmployeeSkillEmployee FOREIGN KEY (EmployeeID) 
+    EmployeeID INT NOT NULL,                                      -- EmployeeID as Foreign Key (Mandatory)
+    SkillID TINYINT NOT NULL,                                     -- SkillID as Foreign Key (Mandatory)
+	PRIMARY KEY (EmployeeID, SkillID),                            -- Composite Primary Key (EmployeeID, SkillID)
+    CONSTRAINT FK_EmployeeSkillEmployee FOREIGN KEY (EmployeeID)  -- Define Foreign Key Constraint for EmployeeID
         REFERENCES Employees(EmployeeID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
-    CONSTRAINT FK_EmployeeSkillSkill FOREIGN KEY (SkillID) 
+    CONSTRAINT FK_EmployeeSkillSkill FOREIGN KEY (SkillID)         -- Define Foreign Key Constraint for SkillID
         REFERENCES Skills(SkillID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
@@ -181,10 +190,10 @@ CREATE TABLE EmployeeSkills (
 
 -- Logs Table
 CREATE TABLE Logs (
-    LogID INT PRIMARY KEY AUTO_INCREMENT,
-    Action VARCHAR(255),
-    Description TEXT,
-    Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    LogID INT PRIMARY KEY AUTO_INCREMENT,                          -- Use INT for larger range of values (We may have many logs)
+    Action VARCHAR(50),                                            -- Action performed (e.g., Project Created)
+    Description TEXT,                                              -- Description of the action
+    Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP                       -- Date and time of the action (Auto-generated)
 );
 
 
@@ -298,76 +307,67 @@ INSERT INTO Ratings (ProjectID, ClientID, Rating, Review) VALUES
 (23, 18, 4.0, 'Tech support services are responsive.'),
 (24, 19, 4.5, 'Cloud consulting has been valuable.');
 
-
--- Insert Employees with more diverse and creative names
-INSERT INTO Employees (FirstName, LastName, Position, HireDate, Email, Phone, Salary) VALUES
-('Aiden', 'Kumar', 'Cloud Solutions Architect', '2020-01-15', 'aiden.kumar@novaloitte.com', '987-654-3210', 102000.00),
-('Lena', 'Nguyen', 'Data Scientist', '2021-07-03', 'lena.nguyen@novaloitte.com', '654-321-9870', 92000.00),
-('Santiago', 'Ruiz', 'Full Stack Developer', '2022-06-30', 'santiago.ruiz@novaloitte.com', '321-987-6540', 84000.00),
-('Yara', 'Al-Farsi', 'Business Intelligence Analyst', '2019-10-25', 'yara.alfarsi@novaloitte.com', '876-543-2109', 77000.00),
-('Ravi', 'Patel', 'AI Researcher', '2021-02-19', 'ravi.patel@novaloitte.com', '543-210-9876', 98000.00),
-('Kirsten', 'Olsen', 'Product Manager', '2020-05-11', 'kirsten.olsen@novaloitte.com', '765-432-1098', 93000.00),
-('Marcelo', 'Duarte', 'Cybersecurity Engineer', '2019-03-07', 'marcelo.duarte@novaloitte.com', '432-109-8765', 105000.00),
-('Priya', 'Iyer', 'Data Analyst', '2022-01-14', 'priya.iyer@novaloitte.com', '210-987-6543', 77000.00),
-('Khalid', 'Bin Zayed', 'Cloud Infrastructure Manager', '2021-04-23', 'khalid.zayed@novaloitte.com', '543-678-9012', 102500.00),
-('Haruto', 'Yamamoto', 'DevOps Engineer', '2020-09-01', 'haruto.yamamoto@novaloitte.com', '890-123-4567', 88000.00),
-('Camila', 'Rodrigues', 'UX/UI Designer', '2022-05-19', 'camila.rodrigues@novaloitte.com', '789-012-3456', 76000.00),
-('Oluwaseun', 'Adebayo', 'Blockchain Developer', '2021-11-30', 'oluwaseun.adebayo@novaloitte.com', '678-901-2345', 115000.00),
-('Esmeralda', 'Hernández', 'Project Manager', '2019-07-20', 'esmeralda.hernandez@novaloitte.com', '321-456-9870', 95000.00),
-('Zara', 'Khan', 'Software Engineer', '2022-09-08', 'zara.khan@novaloitte.com', '987-654-3210', 85000.00),
-('Victor', 'Petrov', 'IT Support Specialist', '2020-04-15', 'victor.petrov@novaloitte.com', '654-321-0987', 71000.00),
-('Ananya', 'Gupta', 'Network Architect', '2021-08-05', 'ananya.gupta@novaloitte.com', '321-987-6540', 97000.00),
-('Mikko', 'Lehtinen', 'Front-End Developer', '2021-12-01', 'mikko.lehtinen@novaloitte.com', '876-543-2109', 78000.00),
-('Carmen', 'Gonzalez', 'Business Development Manager', '2020-06-20', 'carmen.gonzalez@novaloitte.com', '210-987-6543', 88000.00),
-('Liang', 'Wei', 'Machine Learning Engineer', '2022-10-15', 'liang.wei@novaloitte.com', '654-321-9870', 101000.00),
-('Dina', 'El-Sayed', 'Digital Transformation Consultant', '2019-12-01', 'dina.elsayed@novaloitte.com', '543-678-9012', 95000.00),
-('Nia', 'Mwangi', 'Mobile App Developer', '2021-07-18', 'nia.mwangi@novaloitte.com', '987-654-3210', 76000.00);
-
 -- Insert Departments
 INSERT INTO Departments (DepartmentName, ManagerID) VALUES
-('Tech Support', 1),
+('Tech', 1),
 ('Sales', 2),
 ('Development', 3),
 ('HR', 4),
-('Marketing', 5),
-('Finance', 6),
-('Project Management', 7),
-('Client Relations', 8),
-('Legal', 9),
-('Operations', 10),
-('Research & Development', 11),
-('Security', 12),
-('Business Strategy', 13),
-('Creative Services', 14),
-('Product Management', 15),
-('Consulting', 16),
-('Business Intelligence', 17),
-('Training & Education', 18),
-('Systems Integration', 19),
-('Customer Success', 20);
+('Marketing', 6),
+('Finance', 9);
+
+-- Insert Employees with more diverse and creative names
+INSERT INTO Employees (FirstName, LastName, Position, HireDate, Email, Phone, Salary, DepartmentID) VALUES
+('Aiden', 'Kumar', 'Cloud Solutions Architect', '2020-01-15', 'aiden.kumar@novaloitte.com', '987-654-3210', 102000.00, 1),
+('Lena', 'Nguyen', 'Data Scientist', '2021-07-03', 'lena.nguyen@novaloitte.com', '654-321-9870', 92000.00, 2),
+('Santiago', 'Ruiz', 'Full Stack Developer', '2022-06-30', 'santiago.ruiz@novaloitte.com', '321-987-6540', 84000.00, 3),
+('Yara', 'Al-Farsi', 'Business Intelligence Analyst', '2019-10-25', 'yara.alfarsi@novaloitte.com', '876-543-2109', 77000.00, 4),
+('Ravi', 'Patel', 'AI Researcher', '2021-02-19', 'ravi.patel@novaloitte.com', '543-210-9876', 98000.00, 4), 
+('Kirsten', 'Olsen', 'Product Manager', '2020-05-11', 'kirsten.olsen@novaloitte.com', '765-432-1098', 93000.00, 5),
+('Marcelo', 'Duarte', 'Cybersecurity Engineer', '2019-03-07', 'marcelo.duarte@novaloitte.com', '432-109-8765', 105000.00, 1),
+('Priya', 'Iyer', 'Data Analyst', '2022-01-14', 'priya.iyer@novaloitte.com', '210-987-6543', 77000.00, 1),
+('Khalid', 'Bin Zayed', 'Cloud Infrastructure Manager', '2021-04-23', 'khalid.zayed@novaloitte.com', '543-678-9012', 102500.00, 6),
+('Haruto', 'Yamamoto', 'DevOps Engineer', '2020-09-01', 'haruto.yamamoto@novaloitte.com', '890-123-4567', 88000.00, 1),
+('Camila', 'Rodrigues', 'UX/UI Designer', '2022-05-19', 'camila.rodrigues@novaloitte.com', '789-012-3456', 76000.00, 2),
+('Oluwaseun', 'Adebayo', 'Blockchain Developer', '2021-11-30', 'oluwaseun.adebayo@novaloitte.com', '678-901-2345', 115000.00, 1),
+('Esmeralda', 'Hernández', 'Project Manager', '2019-07-20', 'esmeralda.hernandez@novaloitte.com', '321-456-9870', 95000.00, 5),
+('Zara', 'Khan', 'Software Engineer', '2022-09-08', 'zara.khan@novaloitte.com', '987-654-3210', 85000.00, 1),
+('Victor', 'Petrov', 'IT Support Specialist', '2020-04-15', 'victor.petrov@novaloitte.com', '654-321-0987', 71000.00, 1),
+('Ananya', 'Gupta', 'Network Architect', '2021-08-05', 'ananya.gupta@novaloitte.com', '321-987-6540', 97000.00, 3),
+('Mikko', 'Lehtinen', 'Front-End Developer', '2021-12-01', 'mikko.lehtinen@novaloitte.com', '876-543-2109', 78000.00, 3),
+('Carmen', 'Gonzalez', 'Business Development Manager', '2020-06-20', 'carmen.gonzalez@novaloitte.com', '210-987-6543', 88000.00, 2),
+('Liang', 'Wei', 'Machine Learning Engineer', '2022-10-15', 'liang.wei@novaloitte.com', '654-321-9870', 101000.00, 3),
+('Dina', 'El-Sayed', 'Digital Transformation Consultant', '2019-12-01', 'dina.elsayed@novaloitte.com', '543-678-9012', 95000.00, 5),
+('Nia', 'Mwangi', 'Mobile App Developer', '2021-07-18', 'nia.mwangi@novaloitte.com', '987-654-3210', 76000.00, 3);
+
+-- Define Foreign Key Constraint for ManagerID
+ALTER TABLE Departments ADD CONSTRAINT FK_DepartmentManager FOREIGN KEY (ManagerID)
+    REFERENCES Employees(EmployeeID) 
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE;
 
 -- Insert Skills
 INSERT INTO Skills (SkillName, SkillLevel, CertificationRequired) VALUES
-('Project Management', 'Advanced', 'Yes'),
-('Cloud Computing', 'Intermediate', 'No'),
-('Data Analysis', 'Expert', 'Yes'),
-('Machine Learning', 'Intermediate', 'Yes'),
-('Blockchain Development', 'Expert', 'Yes'),
-('Cybersecurity', 'Advanced', 'Yes'),
-('UX/UI Design', 'Intermediate', 'No'),
-('Artificial Intelligence', 'Expert', 'Yes'),
-('Software Development', 'Advanced', 'Yes'),
-('Database Administration', 'Intermediate', 'No'),
-('Business Strategy', 'Expert', 'No'),
-('Digital Marketing', 'Intermediate', 'No'),
-('Mobile App Development', 'Advanced', 'Yes'),
-('Cloud Security', 'Expert', 'Yes'),
-('Web Development', 'Intermediate', 'No'),
-('Business Intelligence', 'Advanced', 'Yes'),
-('Network Administration', 'Intermediate', 'No'),
-('Data Engineering', 'Expert', 'Yes'),
-('Big Data Analysis', 'Intermediate', 'No'),
-('DevOps', 'Expert', 'Yes');
+('Project Management', 'Advanced', 1),
+('Cloud Computing', 'Intermediate', 0),
+('Data Analysis', 'Expert', 1),
+('Machine Learning', 'Intermediate', 1),
+('Blockchain Development', 'Expert', 1),
+('Cybersecurity', 'Advanced', 1),
+('UX/UI Design', 'Intermediate', 0),
+('Artificial Intelligence', 'Expert', 1),
+('Software Development', 'Advanced', 1),
+('Database Administration', 'Intermediate', 0),
+('Business Strategy', 'Expert', 0),
+('Digital Marketing', 'Intermediate', 0),
+('Mobile App Development', 'Advanced', 1),
+('Cloud Security', 'Expert', 1),
+('Web Development', 'Intermediate', 0),
+('Business Intelligence', 'Advanced', 1),
+('Network Administration', 'Intermediate', 0),
+('Data Engineering', 'Expert', 1),
+('Big Data Analysis', 'Intermediate', 0),
+('DevOps', 'Expert', 1);
 
 -- Insert EmployeeSkills
 INSERT INTO EmployeeSkills (EmployeeID, SkillID) VALUES
