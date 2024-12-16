@@ -705,7 +705,7 @@ ORDER BY TotalRevenue DESC;
 -- Query 3: Get the average rating for each consultant role
 SELECT 
     pc.EmployeeRole, 
-    ROUND(AVG(r.Rating),2) AS AverageRating
+    ROUND(AVG(r.Rating),1) AS AverageRating
 FROM ProjectConsultants pc
 JOIN Ratings r ON pc.ProjectID = r.ProjectID
 GROUP BY pc.EmployeeRole
@@ -717,12 +717,12 @@ SELECT
 FROM Projects p
 WHERE YEAR(p.EndDate) = 2024;
 
--- Query 5: Get the total number of projects in progress for each department
+-- Query 5: Get the total number of projects 'In Progress' for each department
 SELECT 
     d.DepartmentName, 
-    COUNT(p.ProjectID) AS TotalProjectsInProgress
+    COUNT(DISTINCT p.ProjectID) AS TotalProjectsInProgress
 FROM Departments d
-JOIN Employees e ON d.ManagerID = e.EmployeeID
+JOIN Employees e ON d.DepartmentID = e.DepartmentID
 JOIN ProjectConsultants pc ON e.EmployeeID = pc.EmployeeID
 JOIN Projects p ON pc.ProjectID = p.ProjectID
 WHERE p.Status = 'In Progress'
