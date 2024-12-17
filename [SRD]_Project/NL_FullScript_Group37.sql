@@ -65,12 +65,11 @@ CREATE TABLE Projects (
 
 -- Ratings Table
 CREATE TABLE Ratings (
-    ProjectID INT NOT NULL,                                  -- ProjectID as Foreign Key (Mandatory)
+    ProjectID INT PRIMARY KEY,                               -- ProjectID as Foreign Key (Mandatory)
     ClientID INT NOT NULL,                                   -- ClientID as Foreign Key (Mandatory)
     Rating DECIMAL(2, 1)                                     -- Rating with 1 decimal places and up to 2 digits (e.g., 4.5)
         CHECK (Rating >= 0 AND Rating <= 5),                 -- Restrict the rating to be between 0 and 5
     Review TEXT DEFAULT NULL,                                -- Review is optional and by default is NULL
-    PRIMARY KEY (ProjectID, ClientID),                       -- Composite Primary Key (ProjectID, ClientID)
     CONSTRAINT FK_RatingProject FOREIGN KEY (ProjectID)      -- Define Foreign Key Constraint for ProjectID
         REFERENCES Projects(ProjectID)
         ON DELETE RESTRICT
