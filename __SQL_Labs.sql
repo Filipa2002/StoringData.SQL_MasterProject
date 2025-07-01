@@ -1,0 +1,1151 @@
+/* =========================================================================================================
+   ------------------------------------------- LAB 1: 04/11/2024 -------------------------------------------
+    Create a database 'library' and 'flight'
+
+  =========================================================================================================
+  ------------------------------------------- LAB 2: 11/11/2024 -------------------------------------------
+   Create a database 'hr' and the following tables:
+   - country(COUNTRY_ID(PK), COUNTRY_NAME, REGION_ID(FK - Futuro))
+   - department(DEPARTMENT_ID(PK), DEPARTMENT_NAME, MANAGER_ID, LOCATION_ID(FK))
+   - employee(EMPLOYEE_ID(PK), FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, HIRE_DATE, JOB_ID(FK), SALARY, COMMISSION_PCT, MANAGER_ID(FK), DEPARTMENT_ID(FK))
+   - job_history(EMPLOYEE_ID(PK, FK), START_DATE(PK), END_DATE(PK), JOB_ID(FK), DEPARTMENT_ID(FK))
+   - job(JOB_ID(PK), JOB_TITLE, MIN_SALARY, MAX_SALARY)
+   - location(LOCATION_ID(PK), STREET_ADDRESS, POSTAL_CODE, CITY, STATE_PROVINCE, COUNTRY_ID(FK))
+   - job_grade(GRADE_LEVEL(PK), LOWEST_SAL, HIGHEST_SAL) [Will be dropped in LAB3]
+
+   + region(REGION_ID(PK), REGION_NAME)
+*/
+
+
+/* 1st step: create a database 'hr' */
+DROP DATABASE IF EXISTS HR;
+CREATE DATABASE IF NOT EXISTS HR;
+
+/*tell which database you will use*/
+USE HR;
+
+CREATE TABLE IF NOT EXISTS `country` (
+  `COUNTRY_ID` varchar(2) NOT NULL,
+  `COUNTRY_NAME` varchar(40) DEFAULT NULL,
+  `REGION_ID` TINYINT DEFAULT NULL,
+  PRIMARY KEY (`COUNTRY_ID`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `department` (
+  `DEPARTMENT_ID` INTEGER NOT NULL DEFAULT 0,
+  `DEPARTMENT_NAME` varchar(30) NOT NULL,
+  `MANAGER_ID` INTEGER DEFAULT NULL,
+  `LOCATION_ID` INTEGER DEFAULT NULL,
+  PRIMARY KEY (`DEPARTMENT_ID`)
+) ;
+
+
+CREATE TABLE IF NOT EXISTS `employee` (
+  `EMPLOYEE_ID` INTEGER NOT NULL DEFAULT 0,
+  `FIRST_NAME` varchar(20) DEFAULT NULL,
+  `LAST_NAME` varchar(25) NOT NULL,
+  `EMAIL` varchar(25) NOT NULL,
+  `PHONE_NUMBER` varchar(20) DEFAULT NULL,
+  `HIRE_DATE` date NOT NULL,
+  `JOB_ID` varchar(10) NOT NULL,
+  `SALARY` decimal(8,2) DEFAULT NULL,
+  `COMMISSION_PCT` decimal(2,2) DEFAULT NULL,
+  `MANAGER_ID` INTEGER DEFAULT NULL,
+  `DEPARTMENT_ID` INTEGER DEFAULT NULL,
+  PRIMARY KEY (`EMPLOYEE_ID`)
+) ;
+
+CREATE TABLE IF NOT EXISTS `job_history` (
+  `EMPLOYEE_ID` INTEGER NOT NULL,
+  `START_DATE` date NOT NULL,
+  `END_DATE` date NOT NULL,
+  `JOB_ID` VARCHAR(15) NOT NULL,
+  `DEPARTMENT_ID` INTEGER DEFAULT NULL,
+  PRIMARY KEY (`EMPLOYEE_ID`,`START_DATE`)
+) ;
+
+CREATE TABLE IF NOT EXISTS `job` (
+  `JOB_ID` VARCHAR(15) NOT NULL,
+  `JOB_TITLE` varchar(35) NOT NULL,
+  `MIN_SALARY` decimal(6,0) DEFAULT NULL,
+  `MAX_SALARY` decimal(6,0) DEFAULT NULL,
+  PRIMARY KEY (`JOB_ID`)
+) ;
+
+
+CREATE TABLE IF NOT EXISTS `location` (
+  `LOCATION_ID` INTEGER NOT NULL DEFAULT '0',
+  `STREET_ADDRESS` varchar(40) DEFAULT NULL,
+  `POSTAL_CODE` varchar(12) DEFAULT NULL,
+  `CITY` varchar(30) NOT NULL,
+  `STATE_PROVINCE` varchar(25) DEFAULT NULL,
+  `COUNTRY_ID` varchar(2) DEFAULT NULL,
+  PRIMARY KEY (`LOCATION_ID`)
+) ;
+
+
+CREATE TABLE IF NOT EXISTS `job_grade` (
+  `GRADE_LEVEL` varchar(20) NOT NULL,
+  `LOWEST_SAL` decimal(6,0) DEFAULT NULL,
+  `HIGHEST_SAL` decimal(6,0) DEFAULT NULL,
+  PRIMARY KEY (`GRADE_LEVEL`)
+) ;
+
+
+/* =========================================================================================================
+   ------------------------------------------- LAB 3: 18/11/2024 -------------------------------------------
+   Create the following foreign keys:
+   - country.region_id -> region.region_id
+   - department.location_id -> location.location_id
+   - employee.department_id -> department.department_id
+   - employee.job_id -> job.job_id
+   - employee.manager_id -> employee.employee_id
+   - job_history.employee_id -> employee.employee_id
+   - job_history.job_id -> job.job_id
+   - job_history.department_id -> department.department_id
+   - location.country_id -> country.country_id
+
+    Drop the table job_grade
+
+    Fill with data
+
+    [+] QUERIES:
+        1. Write a query to display all the employee details.
+        2. Write a query to calculate the square root of (52.32 * 96.3)
+        3. Write a query to get the last name and first name of the first 10 employees.
+        4. Write a query to get the difference between the maximum and minimum salary from employees.
+        5. Write a query to get the last name (in upper case) of employees and the salary. Order by salary from the maximum to minimum.
+
+    [+] TEAM DISCUSSION:
+    Considering the foreign keys created and the content of the tables what will happen if:
+        1. Delete from department table the department 'Payroll'? (why)
+        2. Delete from department table the department 'IT'? (why)
+        3. Change in the department the department_id of the department 'IT' to be from 60 to 210? (why)
+        4. Change in the department the department_id of the department 'IT Helpdesk' to be 235? (why)
+        5. Change in the department the department_id of the department 'IT' to be from 60 to 65? (why)
+    
+*/
+
+ALTER TABLE `location`
+ADD CONSTRAINT `fk_location_1`
+  FOREIGN KEY (`COUNTRY_ID`)
+  REFERENCES `country` (`COUNTRY_ID`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+ALTER TABLE `department`
+ADD CONSTRAINT `fk_department_1`
+  FOREIGN KEY (`LOCATION_ID`)
+  REFERENCES `location` (`LOCATION_ID`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+ALTER TABLE `job_history`
+ADD CONSTRAINT `fk_job_history_employee1`
+  FOREIGN KEY (`EMPLOYEE_ID`)
+  REFERENCES `employee` (`EMPLOYEE_ID`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+ALTER TABLE `employee`
+ADD CONSTRAINT `fk_employee_2`
+  FOREIGN KEY (`DEPARTMENT_ID`)
+  REFERENCES `department` (`DEPARTMENT_ID`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+  
+ALTER TABLE `HR`.`employee`
+ADD CONSTRAINT `fk_employee_3`
+  FOREIGN KEY (`JOB_ID`)
+  REFERENCES `HR`.`job` (`JOB_ID`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;  
+
+ALTER TABLE `job_history`
+ADD CONSTRAINT `fk_job_history_2`
+  FOREIGN KEY (`JOB_ID`)
+  REFERENCES `job` (`JOB_ID`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+/* [EXERCISE 3.3] 
+        - (Quando vamos ao 'Reverse Engineer' as FK têm setas a
+            - tracejado ----- (quando FK faz parte da PK)
+            - cheio ~~~ (quando FK não faz parte da PK)
+        )
+*/
+
+
+/* [EXERCISE 3.4] 
+    After looking at the ERD, the HR department decided that also wants to identify and store the regions where the countries are located (Europe, Asia, etc.). 
+    Then, you need to create a new table REGION (using SQL code or the wizard).
+        - Criar tabela 'region'
+*/
+
+CREATE TABLE IF NOT EXISTS `region` (
+  `REGION_ID` TINYINT NOT NULL,
+  `REGION_NAME` varchar(25) DEFAULT NULL,
+  PRIMARY KEY (`REGION_ID`)
+) ;
+
+
+/* [EXERCISE 3.5] 
+    Create (in workbench ERD) a foreign key to link country and region, where region is the parent table
+    (Make sure region_id in both tables have equal type). Set up "On Update = cascade" and "On Delete = restrict")
+        - Podemos criar a FK com o 'ALTER TABLE' ou no 'Reverse Engineer'
+            - Caso façamos no 'Reverse Engineer' temos de ir a Database/Synchronize Model para atualizar o modelo [EXERCISE 3.6]
+        - Criar a FK para a tabela 'region' e 'employee' (manager_id)
+*/
+
+ALTER TABLE `country`
+ADD CONSTRAINT `fk_country_1`
+  FOREIGN KEY (`REGION_ID`)
+  REFERENCES `region` (`REGION_ID`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+
+/* [EXERCISE 3.7] 
+    Insert four world regions using sql code: Europe, Americas, Asia, Middle East and Africa.
+*/
+INSERT INTO `region` (`REGION_ID`, `REGION_NAME`) VALUES
+(1, 'Europe'),
+(2, 'Americas'),
+(3, 'Asia'),
+(4, 'Middle East and Africa');
+
+/* [EXERCISE 3.8] 
+    You receive a new update from the business user; the human resources department is not going to have job grades any longer. 
+    Then, you need to delete the table job_grade.
+*/
+DROP TABLE IF EXISTS `JOB_GRADE`;
+
+/* [EXERCISE 3.9] 
+    Insert the data into your tables (use the script 'insertHRdata.sql')
+*/
+
+INSERT INTO `country` (`COUNTRY_ID`, `COUNTRY_NAME`, `REGION_ID`) VALUES
+('AR', 'Argentina', 2),
+('AU', 'Australia', 3),
+('BE', 'Belgium', 1),
+('BR', 'Brazil', 2),
+('CA', 'Canada', 2),
+('CH', 'Switzerland', 1),
+('CN', 'China', 3),
+('DE', 'Germany', 1),
+('DK', 'Denmark', 1),
+('EG', 'Egypt', 4),
+('FR', 'France', 1),
+('HK', 'HongKong', 3),
+('IL', 'Israel', 4),
+('IN', 'India', 3),
+('IT', 'Italy', 1),
+('JP', 'Japan', 3),
+('KW', 'Kuwait', 4),
+('MX', 'Mexico', 2),
+('NG', 'Nigeria', 4),
+('NL', 'Netherlands', 1),
+('SG', 'Singapore', 3),
+('UK', 'United Kingdom', 1),
+('US', 'United States of America', 2),
+('ZM', 'Zambia', 4),
+('ZW', 'Zimbabwe', 4);
+
+INSERT INTO `location` (`LOCATION_ID`, `STREET_ADDRESS`, `POSTAL_CODE`, `CITY`, `STATE_PROVINCE`, `COUNTRY_ID`) VALUES
+(1000, '1297 Via Cola di Rie', 989, 'Roma', NULL, 'IT'),
+(1100, '93091 Calle della Testa', 10934, 'Venice', NULL, 'IT'),
+(1200, '2017 Shinjuku-ku', 1689, 'Tokyo', 'Tokyo Prefecture', 'JP'),
+(1300, '9450 Kamiya-cho', 6823, 'Hiroshima', NULL, 'JP'),
+(1400, '2014 Jabberwocky Rd', 26192, 'Southlake', 'Texas', 'US'),
+(1500, '2011 Interiors Blvd', 99236, 'South San Francisco', 'California', 'US'),
+(1600, '2007 Zagora St', 50090, 'South Brunswick', 'New Jersey', 'US'),
+(1700, '2004 Charade Rd', 98199, 'Seattle', 'Washington', 'US'),
+(1800, '147 Spadina Ave', 'M5V 2L7', 'Toronto', 'Ontario', 'CA'),
+(1900, '6092 Boxwood St', 'YSW 9T2', 'Whitehorse', 'Yukon', 'CA'),
+(2000, '40-5-12 Laogianggen', 190518, 'Beijing', NULL, 'CN'),
+(2100, '1298 Vileparle (E)', 490231, 'Bombay', 'Maharashtra', 'IN'),
+(2200, '12-98 Victoria Street', 2901, 'Sydney', 'New South Wales', 'AU'),
+(2300, '198 Clementi North', 540198, 'Singapore', NULL, 'SG'),
+(2400, '8204 Arthur St', NULL, 'London', NULL, 'UK'),
+(2500, '"Magdalen Centre', ' The Oxford ', 'OX9 9ZB', 'Oxford', NULL),
+(2600, '9702 Chester Road', 9629850293, 'Stretford', 'Manchester', 'UK'),
+(2700, 'Schwanthalerstr. 7031', 80925, 'Munich', 'Bavaria', 'DE'),
+(2800, 'Rua Frei Caneca 1360', '01307-002', 'Sao Paulo', 'Sao Paulo', 'BR'),
+(2900, '20 Rue des Corps-Saints', 1730, 'Geneva', 'Geneve', 'CH'),
+(3000, 'Murtenstrasse 921', 3095, 'Bern', 'BE', 'CH'),
+(3100, 'Pieter Breughelstraat 837', '3029SK', 'Utrecht', 'Utrecht', 'NL'),
+(3200, 'Mariano Escobedo 9991', 11932, 'Mexico City', '"Distrito Federal', NULL);
+
+INSERT INTO `job` (`JOB_ID`, `JOB_TITLE`, `MIN_SALARY`, `MAX_SALARY`) VALUES
+('AD_PRES', 'President', 20000, 40000),
+('AD_VP', 'Administration Vice President', 15000, 30000),
+('AD_ASST', 'Administration Assistant', 3000, 6000),
+('FI_MGR', 'Finance Manager', 8200, 16000),
+('FI_ACCOUNT', 'Accountant', 4200, 9000),
+('AC_MGR', 'Accounting Manager', 8200, 16000),
+('AC_ACCOUNT', 'Public Accountant', 4200, 9000),
+('SA_MAN', 'Sales Manager', 10000, 20000),
+('SA_REP', 'Sales Representative', 6000, 12000),
+('PU_MAN', 'Purchasing Manager', 8000, 15000),
+('PU_CLERK', 'Purchasing Clerk', 2500, 5500),
+('ST_MAN', 'Stock Manager', 5500, 8500),
+('ST_CLERK', 'Stock Clerk', 2000, 5000),
+('SH_CLERK', 'Shipping Clerk', 2500, 5500),
+('IT_PROG', 'Programmer', 4000, 10000),
+('MK_MAN', 'Marketing Manager', 9000, 15000),
+('MK_REP', 'Marketing Representative', 4000, 9000),
+('HR_REP', 'Human Resources Representative', 4000, 9000),
+('PR_REP', 'Public Relations Representative', 4500, 10500);
+
+INSERT INTO `department` (`DEPARTMENT_ID`, `DEPARTMENT_NAME`, `MANAGER_ID`, `LOCATION_ID`) VALUES
+(10, 'Administration', 200, 1700),
+(20, 'Marketing', 201, 1800),
+(30, 'Purchasing', 114, 1700),
+(40, 'Human Resources', 203, 2400),
+(50, 'Shipping', 121, 1500),
+(60, 'IT', 103, 1400),
+(70, 'Public Relations', 204, 2700),
+(80, 'Sales', 145, 2500),
+(90, 'Executive', 100, 1700),
+(100, 'Finance', 108, 1700),
+(110, 'Accounting', 205, 1700),
+(120, 'Treasury', NULL, 1700),
+(130, 'Corporate Tax', NULL, 1700),
+(140, 'Control And Credit', NULL, 1700),
+(150, 'Shareholder Services', NULL, 1700),
+(160, 'Benefits', NULL, 1700),
+(170, 'Manufacturing', NULL, 1700),
+(180, 'Construction', NULL, 1700),
+(190, 'Contracting', NULL, 1700),
+(200, 'Operations', NULL, 1700),
+(210, 'IT Support', NULL, 1700),
+(220, 'NOC', NULL, 1700),
+(230, 'IT Helpdesk', NULL, 1700),
+(240, 'Government Sales', NULL, 1700),
+(250, 'Retail Sales', NULL, 1700),
+(260, 'Recruiting', NULL, 1700),
+(270, 'Payroll', NULL, 1700);
+
+INSERT INTO `employee` (`EMPLOYEE_ID`, `FIRST_NAME`, `LAST_NAME`, `EMAIL`, `PHONE_NUMBER`, `HIRE_DATE`, `JOB_ID`, `SALARY`, `COMMISSION_PCT`, `MANAGER_ID`, `DEPARTMENT_ID`) VALUES
+(100, 'Steven', 'King', 'SKING', '515.123.4567', '1987-06-17', 'AD_PRES', 24000.00, 0.00, NULL, 90),
+(101, 'Neena', 'Kochhar', 'NKOCHHAR', '515.123.4568', '1987-06-18', 'AD_VP', 17000.00, 0.00, 100, 90),
+(102, 'Lex', 'De Haan', 'LDEHAAN', '515.123.4569', '1987-06-19', 'AD_VP', 17000.00, 0.00, 100, 90),
+(103, 'Alexander', 'Hunold', 'AHUNOLD', '590.423.4567', '1987-06-20', 'IT_PROG', 9000.00, 0.00, 102, 60),
+(104, 'Bruce', 'Ernst', 'BERNST', '590.423.4568', '1987-06-21', 'IT_PROG', 6000.00, 0.00, 103, 60),
+(105, 'David', 'Austin', 'DAUSTIN', '590.423.4569', '1987-06-22', 'IT_PROG', 4800.00, 0.00, 103, 60),
+(106, 'Valli', 'Pataballa', 'VPATABAL', '590.423.4560', '1987-06-23', 'IT_PROG', 4800.00, 0.00, 103, 60),
+(107, 'Diana', 'Lorentz', 'DLORENTZ', '590.423.5567', '1987-06-24', 'IT_PROG', 4200.00, 0.00, 103, 60),
+(108, 'Nancy', 'Greenberg', 'NGREENBE', '515.124.4569', '1987-06-25', 'FI_MGR', 12000.00, 0.00, 101, 100),
+(109, 'Daniel', 'Faviet', 'DFAVIET', '515.124.4169', '1987-06-26', 'FI_ACCOUNT', 9000.00, 0.00, 108, 100),
+(110, 'John', 'Chen', 'JCHEN', '515.124.4269', '1987-06-27', 'FI_ACCOUNT', 8200.00, 0.00, 108, 100),
+(111, 'Ismael', 'Sciarra', 'ISCIARRA', '515.124.4369', '1987-06-28', 'FI_ACCOUNT', 7700.00, 0.00, 108, 100),
+(112, 'Jose Manuel', 'Urman', 'JMURMAN', '515.124.4469', '1987-06-29', 'FI_ACCOUNT', 7800.00, 0.00, 108, 100),
+(113, 'Luis', 'Popp', 'LPOPP', '515.124.4567', '1987-06-30', 'FI_ACCOUNT', 6900.00, 0.00, 108, 100),
+(114, 'Den', 'Raphaely', 'DRAPHEAL', '515.127.4561', '1987-07-01', 'PU_MAN', 11000.00, 0.00, 100, 30),
+(115, 'Alexander', 'Khoo', 'AKHOO', '515.127.4562', '1987-07-02', 'PU_CLERK', 3100.00, 0.00, 114, 30),
+(116, 'Shelli', 'Baida', 'SBAIDA', '515.127.4563', '1987-07-03', 'PU_CLERK', 2900.00, 0.00, 114, 30),
+(117, 'Sigal', 'Tobias', 'STOBIAS', '515.127.4564', '1987-07-04', 'PU_CLERK', 2800.00, 0.00, 114, 30),
+(118, 'Guy', 'Himuro', 'GHIMURO', '515.127.4565', '1987-07-05', 'PU_CLERK', 2600.00, 0.00, 114, 30),
+(119, 'Karen', 'Colmenares', 'KCOLMENA', '515.127.4566', '1987-07-06', 'PU_CLERK', 2500.00, 0.00, 114, 30),
+(120, 'Matthew', 'Weiss', 'MWEISS', '650.123.1234', '1987-07-07', 'ST_MAN', 8000.00, 0.00, 100, 50),
+(121, 'Adam', 'Fripp', 'AFRIPP', '650.123.2234', '1987-07-08', 'ST_MAN', 8200.00, 0.00, 100, 50),
+(122, 'Payam', 'Kaufling', 'PKAUFLIN', '650.123.3234', '1987-07-09', 'ST_MAN', 7900.00, 0.00, 100, 50),
+(123, 'Shanta', 'Vollman', 'SVOLLMAN', '650.123.4234', '1987-07-10', 'ST_MAN', 6500.00, 0.00, 100, 50),
+(124, 'Kevin', 'Mourgos', 'KMOURGOS', '650.123.5234', '1987-07-11', 'ST_MAN', 5800.00, 0.00, 100, 50),
+(125, 'Julia', 'Nayer', 'JNAYER', '650.124.1214', '1987-07-12', 'ST_CLERK', 3200.00, 0.00, 120, 50),
+(126, 'Irene', 'Mikkilineni', 'IMIKKILI', '650.124.1224', '1987-07-13', 'ST_CLERK', 2700.00, 0.00, 120, 50),
+(127, 'James', 'Landry', 'JLANDRY', '650.124.1334', '1987-07-14', 'ST_CLERK', 2400.00, 0.00, 120, 50),
+(128, 'Steven', 'Markle', 'SMARKLE', '650.124.1434', '1987-07-15', 'ST_CLERK', 2200.00, 0.00, 120, 50),
+(129, 'Laura', 'Bissot', 'LBISSOT', '650.124.5234', '1987-07-16', 'ST_CLERK', 3300.00, 0.00, 121, 50),
+(130, 'Mozhe', 'Atkinson', 'MATKINSO', '650.124.6234', '1987-07-17', 'ST_CLERK', 2800.00, 0.00, 121, 50),
+(131, 'James', 'Marlow', 'JAMRLOW', '650.124.7234', '1987-07-18', 'ST_CLERK', 2500.00, 0.00, 121, 50),
+(132, 'TJ', 'Olson', 'TJOLSON', '650.124.8234', '1987-07-19', 'ST_CLERK', 2100.00, 0.00, 121, 50),
+(133, 'Jason', 'Mallin', 'JMALLIN', '650.127.1934', '1987-07-20', 'ST_CLERK', 3300.00, 0.00, 122, 50),
+(134, 'Michael', 'Rogers', 'MROGERS', '650.127.1834', '1987-07-21', 'ST_CLERK', 2900.00, 0.00, 122, 50),
+(135, 'Ki', 'Gee', 'KGEE', '650.127.1734', '1987-07-22', 'ST_CLERK', 2400.00, 0.00, 122, 50),
+(136, 'Hazel', 'Philtanker', 'HPHILTAN', '650.127.1634', '1987-07-23', 'ST_CLERK', 2200.00, 0.00, 122, 50),
+(137, 'Renske', 'Ladwig', 'RLADWIG', '650.121.1234', '1987-07-24', 'ST_CLERK', 3600.00, 0.00, 123, 50),
+(138, 'Stephen', 'Stiles', 'SSTILES', '650.121.2034', '1987-07-25', 'ST_CLERK', 3200.00, 0.00, 123, 50),
+(139, 'John', 'Seo', 'JSEO', '650.121.2019', '1987-07-26', 'ST_CLERK', 2700.00, 0.00, 123, 50),
+(140, 'Joshua', 'Patel', 'JPATEL', '650.121.1834', '1987-07-27', 'ST_CLERK', 2500.00, 0.00, 123, 50),
+(141, 'Trenna', 'Rajs', 'TRAJS', '650.121.8009', '1987-07-28', 'ST_CLERK', 3500.00, 0.00, 124, 50),
+(142, 'Curtis', 'Davies', 'CDAVIES', '650.121.2994', '1987-07-29', 'ST_CLERK', 3100.00, 0.00, 124, 50),
+(143, 'Randall', 'Matos', 'RMATOS', '650.121.2874', '1987-07-30', 'ST_CLERK', 2600.00, 0.00, 124, 50),
+(144, 'Peter', 'Vargas', 'PVARGAS', '650.121.2004', '1987-07-31', 'ST_CLERK', 2500.00, 0.00, 124, 50),
+(145, 'John', 'Russell', 'JRUSSEL', '011.44.1344.429268', '1987-08-01', 'SA_MAN', 14000.00, '0.40', 100, 80),
+(146, 'Karen', 'Partners', 'KPARTNER', '011.44.1344.467268', '1987-08-02', 'SA_MAN', 13500.00, '0.30', 100, 80),
+(147, 'Alberto', 'Errazuriz', 'AERRAZUR', '011.44.1344.429278', '1987-08-03', 'SA_MAN', 12000.00, '0.30', 100, 80),
+(148, 'Gerald', 'Cambrault', 'GCAMBRAU', '011.44.1344.619268', '1987-08-04', 'SA_MAN', 11000.00, '0.30', 100, 80),
+(149, 'Eleni', 'Zlotkey', 'EZLOTKEY', '011.44.1344.429018', '1987-08-05', 'SA_MAN', 10500.00, '0.20', 100, 80),
+(150, 'Peter', 'Tucker', 'PTUCKER', '011.44.1344.129268', '1987-08-06', 'SA_REP', 10000.00, '0.30', 145, 80),
+(151, 'David', 'Bernstein', 'DBERNSTE', '011.44.1344.345268', '1987-08-07', 'SA_REP', 9500.00, '0.25', 145, 80),
+(152, 'Peter', 'Hall', 'PHALL', '011.44.1344.478968', '1987-08-08', 'SA_REP', 9000.00, '0.25', 145, 80),
+(153, 'Christopher', 'Olsen', 'COLSEN', '011.44.1344.498718', '1987-08-09', 'SA_REP', 8000.00, '0.20', 145, 80),
+(154, 'Nanette', 'Cambrault', 'NCAMBRAU', '011.44.1344.987668', '1987-08-10', 'SA_REP', 7500.00, '0.20', 145, 80),
+(155, 'Oliver', 'Tuvault', 'OTUVAULT', '011.44.1344.486508', '1987-08-11', 'SA_REP', 7000.00, '0.15', 145, 80),
+(156, 'Janette', 'King', 'JKING', '011.44.1345.429268', '1987-08-12', 'SA_REP', 10000.00, '0.35', 146, 80),
+(157, 'Patrick', 'Sully', 'PSULLY', '011.44.1345.929268', '1987-08-13', 'SA_REP', 9500.00, '0.35', 146, 80),
+(158, 'Allan', 'McEwen', 'AMCEWEN', '011.44.1345.829268', '1987-08-14', 'SA_REP', 9000.00, '0.35', 146, 80),
+(159, 'Lindsey', 'Smith', 'LSMITH', '011.44.1345.729268', '1987-08-15', 'SA_REP', 8000.00, '0.30', 146, 80),
+(160, 'Louise', 'Doran', 'LDORAN', '011.44.1345.629268', '1987-08-16', 'SA_REP', 7500.00, '0.30', 146, 80),
+(161, 'Sarath', 'Sewall', 'SSEWALL', '011.44.1345.529268', '1987-08-17', 'SA_REP', 7000.00, '0.25', 146, 80),
+(162, 'Clara', 'Vishney', 'CVISHNEY', '011.44.1346.129268', '1987-08-18', 'SA_REP', 10500.00, '0.25', 147, 80),
+(163, 'Danielle', 'Greene', 'DGREENE', '011.44.1346.229268', '1987-08-19', 'SA_REP', 9500.00, '0.15', 147, 80),
+(164, 'Mattea', 'Marvins', 'MMARVINS', '011.44.1346.329268', '1987-08-20', 'SA_REP', 7200.00, '0.10', 147, 80),
+(165, 'David', 'Lee', 'DLEE', '011.44.1346.529268', '1987-08-21', 'SA_REP', 6800.00, '0.10', 147, 80),
+(166, 'Sundar', 'Ande', 'SANDE', '011.44.1346.629268', '1987-08-22', 'SA_REP', 6400.00, '0.10', 147, 80),
+(167, 'Amit', 'Banda', 'ABANDA', '011.44.1346.729268', '1987-08-23', 'SA_REP', 6200.00, '0.10', 147, 80),
+(168, 'Lisa', 'Ozer', 'LOZER', '011.44.1343.929268', '1987-08-24', 'SA_REP', 11500.00, '0.25', 148, 80),
+(169, 'Harrison', 'Bloom', 'HBLOOM', '011.44.1343.829268', '1987-08-25', 'SA_REP', 10000.00, '0.20', 148, 80),
+(170, 'Tayler', 'Fox', 'TFOX', '011.44.1343.729268', '1987-08-26', 'SA_REP', 9600.00, '0.20', 148, 80),
+(171, 'William', 'Smith', 'WSMITH', '011.44.1343.629268', '1987-08-27', 'SA_REP', 7400.00, '0.15', 148, 80),
+(172, 'Elizabeth', 'Bates', 'EBATES', '011.44.1343.529268', '1987-08-28', 'SA_REP', 7300.00, '0.15', 148, 80),
+(173, 'Sundita', 'Kumar', 'SKUMAR', '011.44.1343.329268', '1987-08-29', 'SA_REP', 6100.00, '0.10', 148, 80),
+(174, 'Ellen', 'Abel', 'EABEL', '011.44.1644.429267', '1987-08-30', 'SA_REP', 11000.00, '0.30', 149, 80),
+(175, 'Alyssa', 'Hutton', 'AHUTTON', '011.44.1644.429266', '1987-08-31', 'SA_REP', 8800.00, '0.25', 149, 80),
+(176, 'Jonathon', 'Taylor', 'JTAYLOR', '011.44.1644.429265', '1987-09-01', 'SA_REP', 8600.00, '0.20', 149, 80),
+(177, 'Jack', 'Livingston', 'JLIVINGS', '011.44.1644.429264', '1987-09-02', 'SA_REP', 8400.00, '0.20', 149, 80),
+(178, 'Kimberely', 'Grant', 'KGRANT', '011.44.1644.429263', '1987-09-03', 'SA_REP', 7000.00, '0.15', 149, NULL),
+(179, 'Charles', 'Johnson', 'CJOHNSON', '011.44.1644.429262', '1987-09-04', 'SA_REP', 6200.00, '0.10', 149, 80),
+(180, 'Winston', 'Taylor', 'WTAYLOR', '650.507.9876', '1987-09-05', 'SH_CLERK', 3200.00, 0.00, 120, 50),
+(181, 'Jean', 'Fleaur', 'JFLEAUR', '650.507.9877', '1987-09-06', 'SH_CLERK', 3100.00, 0.00, 120, 50),
+(182, 'Martha', 'Sullivan', 'MSULLIVA', '650.507.9878', '1987-09-07', 'SH_CLERK', 2500.00, 0.00, 120, 50),
+(183, 'Girard', 'Geoni', 'GGEONI', '650.507.9879', '1987-09-08', 'SH_CLERK', 2800.00, 0.00, 120, 50),
+(184, 'Nandita', 'Sarchand', 'NSARCHAN', '650.509.1876', '1987-09-09', 'SH_CLERK', 4200.00, 0.00, 121, 50),
+(185, 'Alexis', 'Bull', 'ABULL', '650.509.2876', '1987-09-10', 'SH_CLERK', 4100.00, 0.00, 121, 50),
+(186, 'Julia', 'Dellinger', 'JDELLING', '650.509.3876', '1987-09-11', 'SH_CLERK', 3400.00, 0.00, 121, 50),
+(187, 'Anthony', 'Cabrio', 'ACABRIO', '650.509.4876', '1987-09-12', 'SH_CLERK', 3000.00, 0.00, 121, 50),
+(188, 'Kelly', 'Chung', 'KCHUNG', '650.505.1876', '1987-09-13', 'SH_CLERK', 3800.00, 0.00, 122, 50),
+(189, 'Jennifer', 'Dilly', 'JDILLY', '650.505.2876', '1987-09-14', 'SH_CLERK', 3600.00, 0.00, 122, 50),
+(190, 'Timothy', 'Gates', 'TGATES', '650.505.3876', '1987-09-15', 'SH_CLERK', 2900.00, 0.00, 122, 50),
+(191, 'Randall', 'Perkins', 'RPERKINS', '650.505.4876', '1987-09-16', 'SH_CLERK', 2500.00, 0.00, 122, 50),
+(192, 'Sarah', 'Bell', 'SBELL', '650.501.1876', '1987-09-17', 'SH_CLERK', 4000.00, 0.00, 123, 50),
+(193, 'Britney', 'Everett', 'BEVERETT', '650.501.2876', '1987-09-18', 'SH_CLERK', 3900.00, 0.00, 123, 50),
+(194, 'Samuel', 'McCain', 'SMCCAIN', '650.501.3876', '1987-09-19', 'SH_CLERK', 3200.00, 0.00, 123, 50),
+(195, 'Vance', 'Jones', 'VJONES', '650.501.4876', '1987-09-20', 'SH_CLERK', 2800.00, 0.00, 123, 50),
+(196, 'Alana', 'Walsh', 'AWALSH', '650.507.9811', '1987-09-21', 'SH_CLERK', 3100.00, 0.00, 124, 50),
+(197, 'Kevin', 'Feeney', 'KFEENEY', '650.507.9822', '1987-09-22', 'SH_CLERK', 3000.00, 0.00, 124, 50),
+(198, 'Donald', 'OConnell', 'DOCONNEL', '650.507.9833', '1987-09-23', 'SH_CLERK', 2600.00, 0.00, 124, 50),
+(199, 'Douglas', 'Grant', 'DGRANT', '650.507.9844', '1987-09-24', 'SH_CLERK', 2600.00, 0.00, 124, 50),
+(200, 'Jennifer', 'Whalen', 'JWHALEN', '515.123.4444', '1987-09-25', 'AD_ASST', 4400.00, 0.00, 101, 10),
+(201, 'Michael', 'Hartstein', 'MHARTSTE', '515.123.5555', '1987-09-26', 'MK_MAN', 13000.00, 0.00, 100, 20),
+(202, 'Pat', 'Fay', 'PFAY', '603.123.6666', '1987-09-27', 'MK_REP', 6000.00, 0.00, 201, 20),
+(203, 'Susan', 'Mavris', 'SMAVRIS', '515.123.7777', '1987-09-28', 'HR_REP', 6500.00, 0.00, 101, 40),
+(204, 'Hermann', 'Baer', 'HBAER', '515.123.8888', '1987-09-29', 'PR_REP', 10000.00, 0.00, 101, 70),
+(205, 'Shelley', 'Higgins', 'SHIGGINS', '515.123.8080', '1987-09-30', 'AC_MGR', 12000.00, 0.00, 101, 110),
+(206, 'William', 'Gietz', 'WGIETZ', '515.123.8181', '1987-10-01', 'AC_ACCOUNT', 8300.00, 0.00, 205, 110);
+
+INSERT INTO `job_history` (`EMPLOYEE_ID`, `START_DATE`, `END_DATE`, `JOB_ID`, `DEPARTMENT_ID`) VALUES
+(102, '1993-01-13', '1998-07-24', 'IT_PROG', 60),
+(101, '1989-09-21', '1993-10-27', 'AC_ACCOUNT', 110),
+(101, '1993-10-28', '1997-03-15', 'AC_MGR', 110),
+(201, '1996-02-17', '1999-12-19', 'MK_REP', 20),
+(114, '1998-03-24', '1999-12-31', 'ST_CLERK', 50),
+(122, '1999-01-01', '1999-12-31', 'ST_CLERK', 50),
+(200, '1987-09-17', '1993-06-17', 'AD_ASST', 90),
+(176, '1998-03-24', '1998-12-31', 'SA_REP', 80),
+(176, '1999-01-01', '1999-12-31', 'SA_MAN', 80),
+(200, '1994-07-01', '1998-12-31', 'AC_ACCOUNT', 90);
+
+
+/* ======================================================================================================== */
+/* Query 1 - Display all the employee details. */
+SELECT * 
+FROM employee;
+
+-- SELECT * from employee;                                           [Solution Prof]
+
+/* Query 2 - Calculate the square root of (52.32 * 96.3) */
+SELECT SQRT(52.32 * 96.3) AS "Square Root";
+
+-- SELECT sqrt(52.32 * 96.3) as square_root;                         [Solution Prof]
+
+/* Query 3 - Display the last name and first name of the first 10 employees. */
+SELECT first_name, last_name 
+FROM employee 
+LIMIT 10;
+
+-- SELECT e.last_name, e.first_name from employee e limit 10;        [Solution Prof]
+
+/* Query 4 - Get the difference between the maximum and minimum salary from employees. */
+SELECT MAX(salary) - MIN(salary) AS "Salary Difference" 
+FROM employee;
+
+-- SELECT max(e.salary) - min(e.salary) from employee as e;          [Solution Prof]
+
+/* Query 5 - Get the last name (in upper case) of employees and the salary. Order by salary from the maximum to minimum. */
+SELECT UPPER(last_name) AS "Last Name", salary
+FROM employee
+ORDER BY salary DESC;
+
+-- SELECT upper(e.last_name), e.salary from employee as e
+-- ORDER BY e.salary desc;                                           [Solution Prof]
+
+/* ======================================================================================================== */
+/* ************************Team Discussion ************************ 
+    Considering the foreign keys created and the content of the tables what will happen if:
+        1.	Delete from department table the department 'Payroll'? (why)
+            Answer: The deletion will fail due to the foreign key constraint between department.DEPARTMENT_ID and employee.DEPARTMENT_ID. 
+                    If there are employees linked to the 'Payroll' department, the database will restrict the deletion to maintain referential integrity.
+            
+            -- (will be deleted. In the table "employee" is no employee with from that department) [Solution Prof]
+
+        2.	Delete from department table the department 'IT'? (why)
+            Answer: Similar to the 'Payroll' case, the deletion will fail if any employees or job_history records reference the 'IT' department. 
+                    The foreign key constraints enforce data consistency.
+
+            -- (will rise error. There are employees who belong to that department and the deletion is "Restricted") [Solution Prof]
+
+        3.	Change in the department the department_id of the department 'IT' to be from 60 to 210? (why)
+            Answer: The update will cascade to all related rows in the employee and job_history tables because the foreign key constraints 
+                     include ON UPDATE CASCADE. This ensures the related data remains consistent with the new ID.
+
+            -- (will rise error: the department_id 210 already exists but that column is primary key and so the values must be unique) [Solution Prof]
+
+        4.	Change in the department the department_id of the department 'IT Helpdesk' to be 235? (why)
+            Answer: The update will cascade to linked records in the employee and job_history tables, similar to the previous question. 
+                    This behavior ensures consistency across the affected tables.
+
+            -- (will be changed, and nothing more. There are no employees from that department) [Solution Prof]
+
+        5.	Change in the department the department_id of the department 'IT' to be from 60 to 65? (why)
+            Answer: The update will also cascade due to the ON UPDATE CASCADE setting on the foreign key constraints. 
+                    All dependent rows in employee and job_history will be updated with the new department ID, ensuring referential integrity.
+
+            -- (the department_id will be changed and the employees from employee table will get the new department_id because update is "cascaded")
+*/
+
+
+
+
+
+/* ========================================================================================================
+  ------------------------------------------- LAB 4: 25/11/2024 -------------------------------------------
+    1. Write a query to display all the last names of employees whose last name starts with 'a'.
+    2. Write a query to display the last name and the email of each employee (append '@novaims.unl.pt' to the email column).
+    3. Update the column EMAIL of the employees to append '@novaims.unl.pt'.
+    4. Write a query to display the number of employees whose first names contains an 'a' and that have the same job.
+    5. Write a query to get the average salary for all departments employing more than 15 employees. Round the average salary to 2 decimals.
+    6. List locations with theirs' addresses including country names
+    7. Same of above but with department name
+    8. Are there locations without any department? list them.
+    9. List the job titles with number of employees and average salary, sorted by average salary from highest to lowest.
+    10. List the department names with number of employees of each one including the ones without employees.
+    11. List employees' names with their managers' names. The manager name should concatenate the name and family name in one single field.
+*/
+
+/* Query 1 - Write a query to display all the last names of employees whose last name starts with 'a'. */
+SELECT last_name
+FROM employee
+WHERE last_name LIKE 'A%';
+
+-- SELECT e.last_name 
+-- FROM employee AS e where e.last_name like 'a%';        [Solution Prof]
+
+/* Query 2 - Write a query to display the last name and the email of each employee (append '@novaims.unl.pt' to the email column). */
+SELECT last_name, CONCAT(LOWER(email), '@novaims.unl.pt') AS "Email"
+FROM employee;
+
+-- SELECT e.last_name, CONCAT(e.email,'@novaims.unl.pt') 
+-- FROM employee AS e;        [Solution Prof]
+
+/* Query 3 - Update the column EMAIL of the employees to append '@novaims.unl.pt'. */
+UPDATE employee
+SET email = CONCAT(email, '@novaims.unl.pt');
+
+-- UPDATE employee AS e
+-- SET e.email = CONCAT(e.email,'@novaims.unl.pt');        [Solution Prof]
+
+/* Query 4 - Write a query to display the number of employees whose first names contain an 'a' and that have the same job. */
+SELECT COUNT(*) AS "Number of Employees"
+FROM employee
+WHERE first_name LIKE '%a%' AND job_id IN (
+    SELECT job_id
+    FROM employee
+    WHERE first_name LIKE '%a%'
+    GROUP BY job_id
+    HAVING COUNT(job_id) > 1
+);
+
+-- SELECT e.job_id, count(e.employee_id) FROM employee AS e
+-- WHERE e.first_name LIKE '%a%'
+-- GROUP BY e.job_id
+-- ORDER BY count(e.employee_id) DESC;                        [Solution Prof]
+
+/* Query 5 - Write a query to get the average salary for all departments employing more than 15 employees. Round the average salary to 2 decimals. */
+SELECT department_name, ROUND(AVG(salary), 2) AS "Average Salary", COUNT(employee_id) AS "Number of Employees"
+FROM employee, department
+WHERE employee.department_id = department.department_id
+GROUP BY employee.department_id
+HAVING COUNT(*) > 15;
+
+-- SELECT e.department_id, ROUND(avg(e.salary),2) AS avg_salary, COUNT(e.employee_id) AS emp_x_dep
+-- FROM employee AS e
+-- GROUP BY e.department_id
+-- HAVING emp_x_dep > 15;        [Solution Prof]
+
+/* Query 6 - List locations with theirs' addresses including country names */
+SELECT location.location_id, street_address, postal_code, city, country_name
+FROM location, country, department
+WHERE location.country_id = country.country_id AND location.location_id = department.location_id;
+
+-- SELECT DEPARTMENT_NAME, STREET_ADDRESS, POSTAL_CODE, CITY, STATE_PROVINCE, COUNTRY_NAME
+-- FROM location l
+-- JOIN country c ON l.COUNTRY_ID=c.COUNTRY_ID
+-- JOIN department d ON d.LOCATION_ID=l.location_ID;      [Solution Prof]
+
+/* Query 7 - Same of above but with department name */
+SELECT department_name, street_address, postal_code, city, country_name, department_name
+FROM location, country, department
+WHERE location.country_id = country.country_id AND location.location_id = department.location_id;
+
+-- SELECT STREET_ADDRESS, POSTAL_CODE, CITY, STATE_PROVINCE, COUNTRY_NAME, DEPARTMENT_NAME
+-- FROM location l
+-- JOIN country c ON l.COUNTRY_ID=c.COUNTRY_ID
+-- JOIN department d ON l.LOCATION_ID=d.LOCATION_ID;        [Solution Prof]
+
+/* Query 8 - Are there locations without any department? list them. */
+SELECT street_address, postal_code, city, state_province, department_id
+FROM location
+LEFT JOIN department ON location.location_id = department.location_id        -- Não se pode usar o WHERE para juntar as tabelas porque se não houver departamento, não aparece a localização
+WHERE department.department_id IS NULL;
+
+-- SELECT l.STREET_ADDRESS, l.POSTAL_CODE, l.CITY, l.STATE_PROVINCE, d.DEPARTMENT_ID
+-- FROM location l
+-- LEFT JOIN department d ON l.LOCATION_ID=d.location_ID
+-- WHERE d.DEPARTMENT_ID IS NULL;        [Solution Prof]
+
+/* Query 9 - List the job titles with number of employees and average salary, sorted by average salary FROM highest to lowest. */
+SELECT job_title, COUNT(employee_id) AS "Number of Employees", ROUND(AVG(salary),2) AS "Average Salary"
+FROM employee
+JOIN job USING (job_id)
+GROUP BY job_id
+ORDER BY AVG(salary) DESC;
+
+-- SELECT j.JOB_TITLE, ROUND(AVG(e.salary),2) AS aver_sal, COUNT(1) AS numb_emp
+-- FROM job j
+-- JOIN employee e ON e.JOB_ID=j.JOB_ID
+-- GROUP BY j.JOB_ID
+-- ORDER BY aver_sal DESC;        [Solution Prof]
+
+/* Query 10 - List the department names with number of employees of each one including the ones without employees. */
+SELECT department_name, COUNT(employee_id) AS "Number of Employees"
+FROM department
+LEFT JOIN employee USING (department_id)
+GROUP BY department_id;
+
+-- SELECT d.DEPARTMENT_NAME, count(e.EMPLOYEE_ID) AS numb_emp
+-- FROM department d
+-- LEFT JOIN employee e ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+-- GROUP BY d.DEPARTMENT_ID;        [Solution Prof]
+
+/* Query 11 - List employees' names with their managers' names. The manager name should concatenate the name and family name in one single field. */
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name", CONCAT(m.first_name, ' ', m.last_name) AS "Manager Name"
+FROM employee e, employee m
+WHERE e.manager_id = m.employee_id;
+
+-- SELECT e.FIRST_NAME, e.LAST_NAME, CONCAT(s.FIRST_NAME, " ", s.LAST_NAME) AS ManagerName
+-- FROM employee AS e
+-- JOIN employee AS s ON e.MANAGER_ID=s.EMPLOYEE_ID;       [Solution Prof]
+
+/* ======================================================================================================== */
+/* ------------------------------------------- LAB 5: 02/12/2024 ------------------------------------------- 
+  More Joins and Views – LAB 5
+    1. List all managers with number of managed employees, where the number of managed employees is bigger than 4.
+    2. List former job titles, start, and end dates of the employees sorted by start date.
+    3. Count employees by regions where there are employees.
+    4. Create a view jobtitle_salary with two columns:
+      - salary
+      - job title
+    (No personal information should be included; The President’s salary should not be listed)
+    5. Create a view jobtitle_salary_avg with averaged salaries by Job
+      - average salary
+      - job title
+      (Again, the President’s salary should not be listed)
+    6. Use the view jobtitle_salary to calculate the average salary by job title
+    7. Is the result from above equivalent of the one from jobtitle_salary_avg ignoring the order? And why?
+    8. Create a view employee_country that contains only the employees that belong to a department and that
+    department has been assigned to a location and country. The view should show two columns:
+      - full employee’s name
+      - county name where his department is located
+*/
+
+/* Query 1 - List all managers with number of managed employees, where the number of managed employees is bigger than 4. */
+SELECT CONCAT(m.first_name, ' ', m.last_name) AS "Manager Name", 
+       COUNT(e.employee_id) AS "Number of Managed Employees"
+FROM employee e, employee m
+WHERE e.manager_id = m.employee_id
+GROUP BY m.employee_id
+HAVING COUNT(e.employee_id) > 4;
+
+-- SELECT s.FIRST_NAME, s.LAST_NAME, COUNT(1) AS numb_managed
+-- FROM employee AS e
+-- JOIN employee AS s ON e.MANAGER_ID=s.EMPLOYEE_ID
+-- GROUP BY s.EMPLOYEE_ID
+-- HAVING numb_managed > 4;        [Solution Prof]
+
+/* Query 2 - List former job titles, start, and end dates of the employees sorted by start date. */
+SELECT e.first_name, e.last_name, jh.job_id, j.job_title, jh.start_date, jh.end_date
+FROM employee e, job_history jh, job j
+WHERE e.employee_id = jh.employee_id AND 
+      jh.job_id = j.job_id
+ORDER BY jh.start_date;
+
+-- SELECT j.JOB_TITLE, e.FIRST_NAME, e.LAST_NAME, jh.START_DATE, jh.END_DATE
+-- FROM job_history jh
+-- JOIN employee e ON jh.EMPLOYEE_ID=e.EMPLOYEE_ID
+-- JOIN job j ON jh.JOB_ID=j.JOB_ID
+-- ORDER BY jh.START_DATE;       [Solution Prof]
+
+/* Query 3 - Count employees by regions where there are employees. */
+SELECT r.region_name, COUNT(e.employee_id) AS "Number of Employees"
+FROM employee e, department d, location l, country c, region r
+WHERE e.department_id = d.department_id AND 
+      d.location_id = l.location_id AND 
+      l.country_id = c.country_id AND
+      c.region_id = r.region_id
+GROUP BY r.region_id;
+
+-- SELECT r.REGION_NAME, COUNT(1) AS numb_emp
+-- FROM region r
+-- JOIN country c ON c.REGION_ID=r.REGION_ID
+-- JOIN location l ON l.COUNTRY_ID=c.COUNTRY_ID
+-- JOIN department d ON d.LOCATION_ID=l.LOCATION_ID
+-- JOIN employee e ON e.DEPARTMENT_ID=d.DEPARTMENT_ID
+-- GROUP BY r.REGION_ID;        [Solution Prof]
+
+/* Query 4 - Create a view jobtitle_salary with two columns: salary and job title */
+DROP VIEW IF EXISTS jobtitle_salary;
+CREATE VIEW jobtitle_salary AS
+SELECT salary, job_title
+FROM employee
+LEFT JOIN job ON employee.JOB_ID=job.JOB_ID
+WHERE NOT job_title = 'President';
+
+-- CREATE VIEW jobtitle_salary AS
+-- SELECT salary, j.JOB_TITLE 
+-- FROM employee e
+-- LEFT JOIN job j ON e.JOB_ID=j.JOB_ID
+-- WHERE NOT j.JOB_TITLE = 'President';
+
+/* Query 5 - Create a view jobtitle_salary_avg with averaged salaries by Job */
+DROP VIEW IF EXISTS jobtitle_salary_avg;
+CREATE VIEW jobtitle_salary_avg AS
+SELECT AVG(salary) AS "Average Salary", job_title
+FROM job, employee
+WHERE job.job_id = employee.job_id AND job.job_id != 'President'
+GROUP BY job.job_id;
+
+-- CREATE VIEW jobtitle_salary_avg AS
+-- SELECT AVG(salary) AS salary_avg, j.JOB_TITLE 
+-- FROM employee e
+-- LEFT JOIN job j ON e.JOB_ID=j.JOB_ID
+-- WHERE NOT j.JOB_TITLE = 'President'
+-- GROUP BY j.JOB_ID;
+
+/* Query 6 - Use the view jobtitle_salary to calculate the average salary by job title */
+SELECT ROUND(AVG(salary),2) AS "Average Salary", job_title
+FROM jobtitle_salary
+GROUP BY job_title;
+
+-- SELECT AVG(salary) AS salary_avg, job_title 
+-- FROM jobtitle_salary
+-- GROUP BY JOB_TITLE;        [Solution Prof]
+
+/* Query 7 - Is the result from above equivalent of the one from jobtitle_salary_avg ignoring the order? And why? */
+-- Answer: The content of the resulting tables may be the same but is not equivalent.
+--         The grouping in the last query is done over Job Title, which is not unique, while the view jobtitle_salary_avg has
+--         grouping over job_id which is unique (as primary key). So, it is possible to add a new job_id with already existing
+--         job title and then the result will not be the same.
+
+/* Query 8 - Create a view employee_country that contains only the employees that belong to a department and that department has been assigned to a location and country. */
+DROP VIEW IF EXISTS employee_country;
+CREATE VIEW employee_country AS
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS "Employee Name", c.country_name
+FROM employee e, department d, location l, country c
+WHERE e.department_id = d.department_id AND 
+      d.location_id = l.location_id AND 
+      l.country_id = c.country_id;
+
+-- CREATE VIEW employee_country AS
+-- SELECT CONCAT(e.FIRST_NAME,' ',e.LAST_NAME) AS name, c.COUNTRY_NAME AS country
+-- FROM employee AS e
+-- JOIN department d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+-- JOIN location l ON d.LOCATION_ID = l.LOCATION_ID
+-- JOIN country c ON l.COUNTRY_ID = c.COUNTRY_ID;        [Solution Prof]
+
+/* ======================================================================================================== */
+/* ------------------------------------------- LAB 6: 09/12/2024 -------------------------------------------
+  ##### Trigger Exercises – LAB 6
+    Implement logging for changes in table "employees" using triggers:
+      1. Create a table called "log" with columns:
+        ID (primary key, unsigned, integer, autoincrement),
+        TS (DATETIME),
+        USR (Varchar),
+        EV (Varchar),
+        MSG (Varchar)
+      2. Create a trigger that, after a new employee is added, adds to the "log" table:
+        a) The current time (use function "NOW()").
+        b) The current user ("USER()").
+        c) The text "add".
+        d) The employee’s full name.
+      3. Same exercise, but when the "employee" table has an updated row (change the text to "update").
+      4. Same exercise, but when some employee is deleted (change the text to "delete").
+      5. Modify, add, and delete some rows in the "employee" table and observe the content of the "log" table.
+    Implement a table with the current salary property over the whole company (min, max, average, count, last updated), 
+    updated by triggers every time employees are added, removed, or changed:
+      6. Create a table "status" with the columns:
+        PK (Primary key, Integer, default 0),
+        SALARY_MIN (FLOAT),
+        SALARY_MAX (FLOAT),
+        SALARY_AVG (FLOAT),
+        EMP_COUNT (INTEGER, UNSIGNED, DEFAULT 0, NOT NULL),
+        LAST_UPD (DATATIME)
+      7. Create a query that replaces the single row in "status" with actual values. Use REPLACE ... SELECT syntax:
+        REPLACE status
+        (PK, SALARY_AVG, SALARY_MIN, SALARY_MAX, EMP_COUNT, LAST_UPD)
+        SELECT 0, avg(SALARY), max(SALARY), min(SALARY), COUNT(1),
+        NOW() FROM employee;
+
+    Create triggers in the employee table after delete that update the content of table "status" using the
+    query from the previous point.
+      8. Enhance the triggers from questions 2 and 3 to perform on the status table.
+      9. Modify the "employee" table and observe the changes in the "status" table.
+
+
+  ##### Query Optimization Exercises – Part 1
+    Load and run the 'create_flropt_db' script from Moodle:
+      1. From the flights table retrieve the flight where the flight_number_id is '146225'. Look at the query
+      stats using the EXPLAIN operator, also can you see the query’s Execution Plan?
+      2. From the flight_numbers table select the flight with flight_number_id equal to 127. Look at the query
+      stats (you can use the EXPLAIN operator).
+      3. From the flight_numbers table select the flight with flight_number equal to ‘DL9411’. Look at the query
+      stats (you can use the EXPLAIN operator).
+      4. Can you detect any difference in terms of query stats from the two previous questions?
+      5. What are the top five countries that received the most flights?
+      6. What are the top five airline company names with the highest number of cancelled flights?
+    
+    Load and run the 'flropt_fkeys' script from Moodle:
+      7. Re-run the queries you’ve built in questions 1, 4 and 5. Can you detect any differences?
+*/
+
+-- A. Implement logging for changes in table "employees" using triggers: 
+--    1. Create table "log" with columns: ID (PK, INTEGER, AUTO_INCREMENT),
+--                                        TS (DATETIME), USR(VARCHAR(63)), EV(VARCHAR(15)),MSG(VARCHAR(255))
+CREATE TABLE log (
+  LOG_ID INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  DT DATETIME NOT NULL,
+  USR VARCHAR(63),
+  EV VARCHAR(15),
+  MSG VARCHAR(255)
+);
+
+--    2. Create trigger that add to the " log" table current time (use function NOW()), the current user
+--        (USER()), the text "add" and the employee full name when new employee is added
+DELIMITER //
+
+CREATE TRIGGER log_after_insert
+AFTER INSERT ON employee
+FOR EACH ROW
+BEGIN
+    INSERT INTO log (TS, USR, EV, MSG)
+    VALUES (NOW(), USER(), 'add', CONCAT(NEW.first_name, ' ', NEW.last_name));
+END;
+
+//
+
+DELIMITER ;
+
+--   3 - Same exercise, but when the "employee" table has an updated row (change the text to "update") 
+DELIMITER $$
+
+CREATE TRIGGER emp_au_log
+AFTER UPDATE
+ON employee
+FOR EACH ROW
+BEGIN
+    INSERT log (TS,USR,EV,MSG) VALUES
+    (NOW(),USER(),"update",CONCAT(NEW.FIRST_NAME,' ',NEW.LAST_NAME));
+END $$
+
+DELIMITER ;
+
+--   4. Same exercise, but when some employee is deleted (change the text to "delete")
+DELIMITER $$
+
+CREATE TRIGGER emp_bd_log
+BEFORE DELETE
+ON employee
+FOR EACH ROW
+BEGIN
+    INSERT log (TS,USR,EV,MSG) VALUES
+    (NOW(),USER(),"delete",CONCAT(OLD.FIRST_NAME,' ',OLD.LAST_NAME));
+END $$
+
+DELIMITER ;
+
+/* Query 5 - Modify, add, and delete some rows in the "employee" table and observe the content of the "log" table. */
+INSERT INTO employee (first_name, last_name, email, phone_number, hire_date, job_id, salary, commission_pct, manager_id, department_id) VALUES 
+('John', 'Doe', 'john.doe@email.com', '123456789', '2024-12-09', 'IT_PROG', 5000.00, 0.10, 1, 1);
+
+UPDATE employee SET salary = 6000.00 WHERE employee_id = 1;
+
+DELETE FROM employee WHERE employee_id = 1;
+
+-- B. Implement table with current salary property over the whole company (min, max, average, count, last updated), 
+--     updated by triggers every time when employees are added, removed or changed;
+
+--    1. Create table status with columns: PK (Primary key, Integer, default 0), 
+--                                         SALARY_MIN, SALARY_MAX, SALARY_AVG (FLOAT), 
+--                                         EMP_COUNT (INTEGER UNSIGNED, DEFAULT 0, NOT NULL), LAST_UPD (DATATIME)
+CREATE TABLE status (
+  PK INTEGER UNSIGNED DEFAULT 0 PRIMARY KEY,
+  SALARY_AVG FLOAT,
+  SALARY_MIN FLOAT,
+  SALARY_MAX FLOAT,
+  EMP_COUNT INTEGER UNSIGNED DEFAULT 0 NOT NULL,
+  LAST_UPD DATETIME
+);
+
+--    2. Create query that replaces the single row in "status" with actual values. Use REPLACE and SELECT syntax:
+REPLACE status (PK,SALARY_AVG,SALARY_MIN,SALARY_MAX,EMP_COUNT,LAST_UPD)
+SELECT 0,avg(SALARY),max(SALARY),min(SALARY),COUNT(1),NOW() FROM employee;
+
+--    3. Create triggers in employee table after delete that update the content of table "status" using the
+--       query from the previous point
+
+DELIMITER $$
+
+CREATE TRIGGER emp_ad_status
+AFTER DELETE
+ON employee
+FOR EACH ROW
+BEGIN
+    REPLACE status (PK,SALARY_AVG,SALARY_MIN,SALARY_MAX,EMP_COUNT,LAST_UPD)
+    SELECT 0,avg(SALARY),max(SALARY),min(SALARY),COUNT(1),NOW() FROM employee;
+END $$
+
+DELIMITER ;
+
+
+--    4. Enhance the triggers from points A.2. and A.3 to perform the status table
+DROP TRIGGER emp_ai_log;
+
+DELIMITER $$
+CREATE TRIGGER emp_ai_log
+AFTER INSERT
+ON employee
+FOR EACH ROW
+BEGIN
+    INSERT log (TS,USR,EV,MSG)
+    VALUES (NOW(),USER(),"add",CONCAT(NEW.FIRST_NAME,' ',NEW.LAST_NAME));
+    REPLACE status (PK,SALARY_AVG,SALARY_MIN,SALARY_MAX,EMP_COUNT,LAST_UPD)
+    SELECT 0,avg(SALARY),max(SALARY),min(SALARY),COUNT(1),NOW() FROM employee;
+END $$
+
+DELIMITER ;
+
+DROP TRIGGER emp_au_log;
+DELIMITER $$
+CREATE TRIGGER emp_au_log
+AFTER UPDATE
+ON employee
+FOR EACH ROW
+BEGIN
+    INSERT log (TS,USR,EV,MSG) VALUES
+    (NOW(),USER(),"update",CONCAT(NEW.FIRST_NAME,' ',NEW.LAST_NAME));
+    REPLACE status (PK,SALARY_AVG,SALARY_MIN,SALARY_MAX,EMP_COUNT,LAST_UPD)
+    SELECT 0, AVG(SALARY), MAX(SALARY), MIN(SALARY), COUNT(1),NOW() FROM employee;
+END $$
+
+DELIMITER ;
+
+
+--    5. Modify the "employee" table and observe that changes in "status" table
+INSERT INTO employee (first_name, last_name, email, phone_number, hire_date, job_id, salary, commission_pct, manager_id, department_id) VALUES 
+('Jane', 'Doe', 'jane.doe@aa.com', '123456789', '2024-12-09', 'IT_PROG', 5000.00, 0.10, 1, 1);
+
+UPDATE employee SET salary = 6000.00 WHERE employee_id = 1;
+
+DELETE FROM employee WHERE employee_id = 1;
+
+
+/* ======================================================================================================== */
+/* Query Optimization Exercises – Part 1 
+    Load and run the 'create_flropt_db' script from Moodle: 
+      - airlines(AIRLINE_CODE(PK), AIRLINE_IATA, AIRLINE_NAME)
+      - airplanes(AIRPLANE_REG(PK), AIRPLANE_MODEL, AIRPLANE_MODEL_CODE, AIRLINE_CODE(FK → airlines.AIRLINE_CODE), LIVERY)
+      - airports(CODE(PK), CODE_ICAO, NAME, CITY, COUNTRY_CODE(FK → countries.COUNTRY_CODE), LATITUDE, LONGITUDE, ELEVATION)
+      - countries(COUNTRY_CODE(PK), COUNTRY)
+      - flight_number_codeshare(FLIGHT_ROW_ID(PK, FK → flights.ROW_ID), FLIGHT_NUMBER_ID(PK, FK → flight_numbers.FLIGHT_NUMBER_ID))
+      - flight_numbers(FLIGHT_NUMBER_ID(PK), FLIGHT_NUMBER)
+      - flights(ROW_ID(PK), AIRPLANE_REG(FK → airplanes.AIRPLANE_REG), AIRLINE_CODE(FK → airlines.AIRLINE_CODE), FLIGHT_NUMBER_ID(FK → flight_numbers.FLIGHT_NUMBER_ID),
+                AIRPORT_ORIG(FK → airports.CODE), AIRPORT_ORIG_SCHEDULE_TIME, AIRPORT_ORIG_STATUS_ID(FK → statuses.STATUS_ID), AIRPORT_ORIG_STATUS_TIME,
+                AIRPORT_DEST(FK → airports.CODE), AIRPORT_DEST_SCHEDULE_TIME, AIRPORT_DEST_STATUS_ID(FK → statuses.STATUS_ID), AIRPORT_DEST_STATUS_TIME)
+      - statuses(STATUS_ID(PK), STATUS)
+*/
+
+/* Query 1 - From the flights table retrieve the flight where the flight_number_id is '146225'. 
+             Look at the query stats using the EXPLAIN operator, also can you see the query’s Execution Plan? */
+
+-- refresh statistics
+analyze table flights, airlines,
+airplanes,airports,countries,flight_number_codeshare,flight_numbers,statuses;
+-- show occupied space
+SELECT table_schema "DB Name", '*' as "table_name",
+        SUM(data_length) AS "data", SUM(index_length) AS "index",
+        ROUND((SUM(data_length) + SUM(index_length)) / 1024 / 1024, 1) "Size in MB"
+FROM information_schema.tables
+WHERE table_schema='flropt'
+UNION
+SELECT table_schema, table_name, data_length, index_length,
+      ROUND((data_length + index_length) / 1024 / 1024, 1)
+FROM information_schema.tables
+WHERE table_schema='flropt';
+
+-- show the query plan
+EXPLAIN  -- ANALYZE 
+SELECT * 
+FROM flights 
+WHERE flight_number_id = '146225';      -- Utilizando KEYS ou INDEXEs corre + rápido
+
+/* Query 2 - From the flight_numbers table select the flight with flight_number_id equal to 127. 
+             Look at the query stats (you can use the EXPLAIN operator). */ 
+
+EXPLAIN  -- ANALYZE
+SELECT * 
+FROM flight_numbers
+WHERE flight_number_id=127;
+
+/* Query 3 - From the flight_numbers table select the flight with flight_number equal to ‘DL9411’. 
+             Look at the query stats (you can use the EXPLAIN operator). */
+
+EXPLAIN  -- ANALYZE
+SELECT * 
+FROM flight_numbers
+WHERE flight_number='DL9411';
+
+/* Query 4 - Can you detect any difference in terms of query stats from the two previous questions? */
+-- Answer: The query stats will be different because the first query uses the primary key index, while the second query uses the flight_number index.
+
+/* Query 5 - What are the top five countries that received the most flights? */
+SELECT c.country, COUNT(f.flight_number_id) AS "Number of Flights"
+FROM flights f, airports a, countries c
+WHERE f.airport_dest = a.code AND 
+      a.country_code = c.country_code
+GROUP BY c.country
+ORDER BY COUNT(f.flight_number_id) DESC
+LIMIT 5;
+
+/* Query 6 - What are the top five airline company names with the highest number of cancelled flights? */
+SELECT a.airline_name, COUNT(1) AS "Number of Cancelled Flights"
+FROM flights f, airlines a, statuses s
+WHERE f.airline_code = a.airline_code AND 
+      f.airport_orig_status_id = s.status_id AND 
+      status = 'canceled'
+      -- AND flights.airport_orig_status_id=10
+GROUP BY f.airline_code
+ORDER BY "Number of Cancelled Flights" DESC
+LIMIT 5;
+
+
+/* Load and run the 'flropt_fkeys' script from Moodle: */
+/* Query 7 - Re-run the queries you’ve built in questions 1, 4 and 5. Can you detect any differences? */
+-- Answer: The query stats will be different because the foreign key constraints will be enforced, which may affect the query execution plan.
+--         Para ver isto usamos o EXPLAIN
+
+
+/* ======================================================================================================== */
+
+
+/* ------------------------------------------- LAB 7: 16/12/2024 -------------------------------------------
+  ##### Query Optimization Exercises – Part 2
+    Be sure that the "create_flropt_db" and "flropt_fkeys" scripts from Moodle have been loaded and run.
+      You are hired to optimize the "flropt" database so that it can consistently and in a brief manner output
+      a set of information’s for the normal functioning of any given airport. For each required information
+      write the required queries, benchmark them, and create relevant indexes to speed up the process.
+
+      1. At each moment, any passenger in the airport needs to know all flights that are leaving the
+          airport in the next 3 hours. Produce a query to feed this invoice with the given requisites:
+              a. You are doing it for the Lisbon airport.
+              b. For testing’s sake, assume that the current timestamp is 01-01-2021 at 11:00 am.
+              (Day, Hour, Flight Number, Destination Country, Air Company Name, Status)
+
+      2. At any moment, airlines need to know which of their planes are on the air or are grounded
+        due to cancellations or other factors. Produce a query to feed this invoice with the given
+        requisites:
+              a. You are doing it for the airline TAP.
+              b. For testing’s sake, assume that the current timestamp is 12-01-2021 at 10:00 am.
+              (Day, Hour, Flight Number, Airplane Model, Origin Airport, Origin Time, Destination Airport, Destination Time, Status)
+
+      3. Even though flight cancelations depend on a wide variety of variables, knowing the
+        consistency of airports can have its relevancy. Produce a query that outputs the probability of
+        cancelation (number of cancelled flights/number of flights) for each airport for the previous week.
+            a. For testing’s sake, assume that the current timestamp is 20-01-2021 at 10:00 am.
+            (Last Week Date, Current Date, Airport Number, Number of Flights, Number of Cancelations, Cancelation Probability)
+
+*/
+
+/* Query 1 - At each moment, any passenger in the airport needs to know all flights that are leaving the airport in the next 3 hours. */
+-- EXPLAIN
+SELECT airport_orig_schedule_time, flight_number, countries.country as dest_country, airlines.airline_name, statuses.status 
+FROM flights
+JOIN flight_numbers ON flights.flight_number_id=flight_numbers.flight_number_id
+JOIN airports ON flights.airport_dest=airports.code
+JOIN countries ON airports.country_code=countries.country_code
+JOIN airlines ON flights.airline_code=airlines.airline_code
+JOIN statuses ON flights.airport_orig_status_id=statuses.status_id
+JOIN airports airports_orig ON flights.airport_orig=airports_orig.code
+WHERE airports_orig.city='lisbon'
+AND airport_orig_schedule_time BETWEEN '2024-08-01 11:00' AND '2024-08-01 13:59:59.9'
+ORDER BY airport_orig_schedule_time;
+
+/* Query 2 - At any moment, airlines need to know which of their planes are on the air or are grounded due to cancellations or other factors. */
+-- EXPLAIN
+SELECT FLIGHT_NUMBER, AIRPLANE_MODEL,
+  AIRPORTS_ORIG.NAME, AIRPORT_ORIG_SCHEDULE_TIME,
+  AIRPORTS_DEST.NAME, AIRPORT_DEST_SCHEDULE_TIME
+FROM FLIGHTS
+JOIN FLIGHT_NUMBERS ON FLIGHTS.FLIGHT_NUMBER_ID = FLIGHT_NUMBERS.FLIGHT_NUMBER_ID
+JOIN AIRPLANES ON FLIGHTS.AIRPLANE_REG = AIRPLANES.AIRPLANE_REG
+JOIN AIRLINES ON AIRPLANES.AIRLINE_CODE = AIRLINES.AIRLINE_CODE
+JOIN AIRPORTS AIRPORTS_ORIG ON FLIGHTS.AIRPORT_ORIG = AIRPORTS_ORIG.CODE
+JOIN AIRPORTS AIRPORTS_DEST ON FLIGHTS.AIRPORT_DEST = AIRPORTS_DEST.CODE
+WHERE AIRPORT_ORIG_STATUS_TIME <= '2024-01-12 10:00' AND
+      AIRPORT_DEST_STATUS_TIME >= '2024-01-12 10:00' AND
+      AIRLINES.AIRLINE_NAME LIKE 'TAP%';
+
+-- EXPLAIN
+SELECT FLIGHT_NUMBER, AIRPLANE_MODEL,
+  AIRPORTS_ORIG.NAME, AIRPORT_ORIG_SCHEDULE_TIME,
+  AIRPORTS_DEST.NAME, AIRPORT_DEST_SCHEDULE_TIME
+FROM FLIGHTS
+JOIN FLIGHT_NUMBERS ON FLIGHTS.FLIGHT_NUMBER_ID = FLIGHT_NUMBERS.FLIGHT_NUMBER_ID
+JOIN AIRPLANES ON FLIGHTS.AIRPLANE_REG = AIRPLANES.AIRPLANE_REG
+JOIN AIRPORTS AIRPORTS_ORIG ON FLIGHTS.AIRPORT_ORIG = AIRPORTS_ORIG.CODE
+JOIN AIRPORTS AIRPORTS_DEST ON FLIGHTS.AIRPORT_DEST = AIRPORTS_DEST.CODE
+WHERE AIRPORT_ORIG_STATUS_TIME <= '2024-01-12 10:00' AND
+      AIRPORT_DEST_STATUS_TIME >= '2024-01-12 10:00' AND
+      FLIGHTS.AIRLINE_CODE = (SELECT AIRLINE_CODE FROM AIRLINES WHERE AIRLINE_NAME LIKE 'TAP%');
+
+/* QUERY 3 - KNOWING THE CONSISTENCY OF AIRPORTS CAN HAVE ITS RELEVANCY. PRODUCE A QUERY THAT OUTPUTS THE PROBABILITY OF CANCELATION FOR EACH AIRPORT FOR THE PREVIOUS WEEK. */
+SELECT MIN(airport_orig_schedule_time) AS min_time,
+       MAX(airport_orig_schedule_time) AS max_time,
+       airports.name,
+       COUNT(1) AS num_flights,
+       ROUND((COUNT(CASE WHEN statuses.status = 'departed' THEN NULL ELSE 1 END) / COUNT(1)) * 100) AS per_canc
+-- ROUND((SUM(NOT statuses.status = 'departed') / COUNT(1)) * 100) AS per_canc
+FROM flights
+JOIN statuses ON flights.airport_orig_status_id = statuses.status_id
+JOIN airports ON flights.airport_orig = airports.code
+WHERE airport_orig_schedule_time BETWEEN DATE_SUB('2024-01-20 10:00', INTERVAL 1 WEEK) AND '2024-01-20 10:00'
+GROUP BY flights.airport_orig;
+
+/* OPTIMIZE */
+CREATE INDEX flights_airport_orig_schedule_time_IDX USING BTREE ON flropt.flights (airport_orig_schedule_time);
+CREATE INDEX flights_airport_orig_status_time_IDX USING BTREE ON flropt.flights (airport_orig_status_time);
+CREATE INDEX flights_airport_dest_status_time_IDX USING BTREE ON flropt.flights (airport_dest_status_time);
+
+/* TRY WITH THIS ALSO */
+CREATE INDEX flights_airport_orig_status_time_IDX USING BTREE ON flropt.flights (airport_orig_status_time, airport_dest_status_time);
